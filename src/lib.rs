@@ -1,1 +1,1 @@
-pub mod skeleton;
+mod skeleton;
