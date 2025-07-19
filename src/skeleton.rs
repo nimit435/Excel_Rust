@@ -1,3 +1,5 @@
+use std::cmp::{max, min};
+use crate::hash::{self, get_column};
 pub enum Celltype{
     Constant,
     Arithmetic(char),
@@ -47,4 +49,33 @@ impl Sheet{
         Sheet { rows: rows, cols: cols, matrix: cells, is_display: true, row_top: 0, col_top: 0 }
          
     }
+    pub fn scroll_up(&mut self){
+        self.row_top = self.row_top.saturating_sub(10);
+    }
+    pub fn scroll_down(&mut self){
+        self.row_top = min(self.row_top+10, self.rows.saturating_sub(10));
+    }
+    pub fn scroll_left(&mut self){
+        self.col_top = self.col_top.saturating_sub(10);
+    }
+    pub fn scroll_right(&mut self){
+        self.col_top = min(self.col_top+10, self.cols.saturating_sub(10));
+    }
+    pub fn enable_display(&mut self){
+        self.is_display= true;
+    }
+    pub fn disable_display(&mut self){
+        self.is_display= false;
+    }
+    pub fn scroll_to(&mut self, input: &str){
+        let (letters, numbers) = hash::separate_cell(input);
+        let row = numbers.parse::<u32>().unwrap()-1;
+        let col = get_column(&letters)-1;
+
+        self.row_top = row;
+        self.col_top = col;
+
+    }
+    
+
 }
