@@ -7,7 +7,207 @@ use std::time::Instant;
 // and check the cycle.
 // Improvements:
 // Though still O(m+n) , no need for linked stack with added butter rust compilation.
-fn MASTER(node:cell,mat:sheet)
+fn MASTER(node:&mut cell,mat:&mut sheet){
+    let max_col = mat.cols;
+    let index_1 = node.cell1.unwrap_or(-1);
+    let index_2 = node.cell2;
+    let from_col = index_1%max_col;
+    let to_col = index_2%max_col;
+    let from_row = index_1/max_col;
+    let to_row = index_2/max_col;
+    if func_type == 0 { // Constant assignment
+        node.val = node.op_val;
+        return 1;
+    }
+    match node.kind{
+    celltype::Arithmatic('+') =>{
+            if node.cell1.unwrap_or(-1)==-1{
+                if (sheet.matrix+ node.cell2).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell2).val + node.op_val;
+                    node.isValid=1;
+                }
+            }
+            else if node.cell2==-1{
+                if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell1.unwrap_or(-1)).val + node.op_val;
+                    node.isValid=1;
+                }
+            }
+            else{
+                if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0 || (sheet.matrix+ node.cell2).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell1.unwrap_or(-1)).val + (sheet.matrix+ node.cell2).val;
+                    node.isValid=1;
+                }
+            }
+            return 1;
+        },
+        celltype::Arithmatic('-') =>{
+            if node.cell2==-1{
+                if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0 {
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell1.unwrap_or(-1)).val - node.op_val;
+                    node.isValid=1;
+                }
+                
+            }
+            else if node.cell1.unwrap_or(-1)==-1 {
+                if(sheet.matrix+ node.cell2).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= node.op_val- (sheet.matrix+ node.cell2).val ;
+                    node.isValid=1;
+                }
+            }
+            else{
+                if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0 || (sheet.matrix+ node.cell2).isValid==0 {
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell1.unwrap_or(-1)).val - (sheet.matrix+ node.cell2).val;
+                    node.isValid=1;
+                }
+            }
+            return 1;
+        },
+        celltype::Arithmatic('*')=>{
+            if node.cell1.unwrap_or(-1)==-1{
+                if (sheet.matrix+ node.cell2).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell2).val * node.op_val;
+                    node.isValid=1;
+                }
+            }
+            else if node.cell2==-1 {
+                if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell1.unwrap_or(-1)).val * node.op_val;
+                    node.isValid=1;
+                }
+            }
+            else{
+                if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0 || (sheet.matrix+ node.cell2).isValid==0{
+                    node.isValid=0;
+                }
+                else{
+                    node.val= (sheet.matrix+ node.cell1.unwrap_or(-1)).val * (sheet.matrix+ node.cell2).val;
+                    node.isValid=1;
+                }
+            }
+            return 1;
+        },
+        celltype::Arithmatic('/')=>{
+            if node.cell2==-1 {
+                if node.op_val==0{
+                    node.isValid=0;
+                    return 1;
+                }
+                else{
+                    if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0{
+                        node.isValid=0;
+                    }
+                    else{
+                        node.val= ((sheet.matrix+ node.cell1.unwrap_or(-1)).val)/(node.op_val);
+                        node.isValid=1;
+                    }
+                    
+                }
+                
+                
+            }
+            else if node.cell1.unwrap_or(-1)==-1{
+                if (sheet.matrix+ node.cell2).val==0{
+                    node.isValid=0;
+                    return 1;
+                }
+                else{
+                    if (sheet.matrix+ node.cell2).isValid==0{
+                        node.isValid=0;
+                    }
+                    else{
+                        node.val= (node.op_val)/((sheet.matrix+ node.cell2).val);
+                        node.isValid=1;
+                    }
+                }
+
+            }
+            else{
+                if (sheet.matrix+ node.cell2).val==0{
+                    node.isValid=0;
+                    return 1;
+                }
+                else{
+                    if (sheet.matrix+ node.cell1.unwrap_or(-1)).isValid==0 || (sheet.matrix+ node.cell2).isValid==0{
+                        node.isValid=0;
+                    }
+                    else{
+                        node.val= ((sheet.matrix+ node.cell1.unwrap_or(-1)).val)/((sheet.matrix+ node.cell2).val);
+                        node.isValid=1;
+                    }
+                }
+                
+            }
+            return 1;
+        },
+    celltype::MIN=>{ // MIN(RANGE)
+        MIN( from_row,from_col,to_row,to_col,mat,node);
+        
+        return 1;
+
+    },
+    celltype::MAX=>{ // MAX(RANGE)
+
+        MAX( from_row,from_col,to_row,to_col,mat,node);
+        return 1;
+
+    },
+
+    celltype::AVG=> { // AVG(RANGE)
+        AVG( from_row,from_col,to_row,to_col,mat,node);
+        return 1;
+    },
+
+    celtype::SUM=> { // SUM(RANGE)
+
+        SUM( from_row,from_col,to_row,to_col,mat,node);
+
+        return 1;
+
+    },
+
+    celltype::STDEV=> { // STDEV(RANGE)
+        STDEV( from_row,from_col,to_row,to_col,mat,node);
+        return 1;
+    }
+
+    celltype::SLEEP=>{ // SLEEP(RANGE)
+        SLEEP(node,mat);
+        return 1;     
+    }
+
+    _=>{
+        return 0;
+
+    }
+    }
+    
+}
+
 
 fn MAX(f_r:i64,f_c:i64,t_r:i64,t_c:i64,mat:&mut sheet,node:&mut cell){
     
@@ -141,7 +341,7 @@ fn STDEV(f_r:i64,f_c:i64,t_r:i64,t_c:i64,mat:&mut sheet,node:&mut cell){
 }
 
 fn SLEEP(node:&mut cell,mat:&mut sheet){
-    if(node.cell1 == -1){
+    if(node.cell1.unwrap_or(-1) == -1){
         let sec : i64 = node.op_val;
         assert!(sec>0,"Seconds can't be negative");
         thread::sleep(Duration::from_secs(sec));
@@ -150,11 +350,11 @@ fn SLEEP(node:&mut cell,mat:&mut sheet){
         return;
     }
     else{
-        if(mat.matrix[node.cell1].valid == 0){
+        if(mat.matrix[node.cell1.unwrap_or(-1)].valid == 0){
             node.isValid = 0;
             return;
         }
-        let sec : i64 = mat.matrix[node.cell1].val;
+        let sec : i64 = mat.matrix[node.cell1.unwrap_or(-1)].val;
         assert(sec>0,"Seconds can't be negative.");
         thread::sleep(Duration::from_secs(sec));
         node.val = sec;
@@ -166,7 +366,6 @@ fn SLEEP(node:&mut cell,mat:&mut sheet){
 fn CHECK_CYCLE(node:&cell ,vis:&mut Vec<bool>,mat:&mut sheet,cell1:i64,cell2:i64,flag:&mut bool,t :i32,stack:&mut Vec<i64>){
     let mut st:Vec<i64> = Vec::new();
     let mut last_unvisited:Vec<i64> = vec![0;mat.cols*mat.rows as usize];
-    let mut complete :Vec<bool> = vec![false;mat.cols*mat.rows as usize];
     st.push(node.id);
     while st.len() > 0 {
 
@@ -213,16 +412,10 @@ fn CHECK_CYCLE(node:&cell ,vis:&mut Vec<bool>,mat:&mut sheet,cell1:i64,cell2:i64
 
         let mut lu:i64 = last_unvisited[id];
         while lu<curr.OutNeighbours.len(){
-            if vis[curr.OutNeighbours[lu]] {
-                if complete[curr.OutNeighbours[lu]] == false{
-                    *flag = true;
-                    return;
-                }
-                lu+=1;
-            }
-            else{
+            if !vis[curr.OutNeighbours[lu]] {
                 break;
             }
+            lu+=1;
         }
         if last_unvisited[id] == curr.OutNeighbours.len(){
             stack.push(st.pop().unwrap());
@@ -234,3 +427,9 @@ fn CHECK_CYCLE(node:&cell ,vis:&mut Vec<bool>,mat:&mut sheet,cell1:i64,cell2:i64
     }
 }
 
+fn recalculate_node(node:&mut cell , mat:&mut sheet , stack:&mut Vec<i64>){
+    while(stack.len() > 0){
+        let id:i64 = stack.pop();
+        MASTER(mat.matrix[id],mat); 
+    }
+}
