@@ -1,6 +1,12 @@
 use crate::skeleton::{cell,sheet};
 use cmp::{min,max};
 use std::time::Instant;
+
+// Changes from the original check_cycle in the excel in C:
+// No need for linked list ; with two stacks one for dfs completion and one for dfs uncompleted we can maintain the toposort
+// and check the cycle.
+// Improvements:
+// Though still O(m+n) , no need for linked stack with added butter rust compilation.
 fn MASTER(node:cell,mat:sheet)
 
 fn MAX(f_r:i64,f_c:i64,t_r:i64,t_c:i64,mat:&mut sheet,node:&mut cell){
@@ -157,4 +163,74 @@ fn SLEEP(node:&mut cell,mat:&mut sheet){
     }
 }
 
-fn CHECK
+fn CHECK_CYCLE(node:&cell ,vis:&mut Vec<bool>,mat:&mut sheet,cell1:i64,cell2:i64,flag:&mut bool,t :i32,stack:&mut Vec<i64>){
+    let mut st:Vec<i64> = Vec::new();
+    let mut last_unvisited:Vec<i64> = vec![0;mat.cols*mat.rows as usize];
+    let mut complete :Vec<bool> = vec![false;mat.cols*mat.rows as usize];
+    st.push(node.id);
+    while st.len() > 0 {
+
+        let id:i64 = st[st.len()-1];
+        let curr : &cell = mat.matrix[id];
+
+        if vis[id]==false{
+            if t > 1 && t < 7 {
+                if (id / mat.cols) >= (cell1 / mat.cols) && (id / mat.cols) <= (cell2 / mat.cols) {
+                    if (id % mat.cols) >= (cell1 % mat.cols) && (id % mat.cols) <= (cell2 % mat.cols){
+                        *flag = true;
+                        
+                    }
+                }
+            } else if t == 1 {
+                if cell2 != -1 && cell1 != -1 {
+                    if (id / mat.cols) == (cell1 / mat.cols) && (id % mat.cols) == (cell1 % mat.cols) {
+                        *flag = true;
+                    }
+                    if (id / mat.cols) == (cell2 / mat.cols) && (id % mat.cols) == (cell2 % mat.cols) {
+                        *flag = true;
+                    }
+                } else if (cell1 != -1) {
+                    if (id / mat.cols) == (cell1 / mat.cols) && (id % mat.cols) == (cell1 % mat.cols) {
+                        *flag = true;
+                    }
+                } else {
+                    if (id / mat.cols) == (cell2 / mat.cols) && (id % mat.cols) == (cell2 % mat.cols) {
+                        *flag = true;
+                    }
+                }
+            } else if t == 7 {
+                if cell1 != -1 {
+                    if (id / mat.cols) == (cell1 / mat.cols) && (id % mat.cols) == (cell1 % mat.cols) {
+                        *flag = true;
+                    }
+                }
+            }
+        }
+        vis[id]=true;
+        if *flag{
+            return;
+        }
+
+        let mut lu:i64 = last_unvisited[id];
+        while lu<curr.OutNeighbours.len(){
+            if vis[curr.OutNeighbours[lu]] {
+                if complete[curr.OutNeighbours[lu]] == false{
+                    *flag = true;
+                    return;
+                }
+                lu+=1;
+            }
+            else{
+                break;
+            }
+        }
+        if last_unvisited[id] == curr.OutNeighbours.len(){
+            stack.push(st.pop().unwrap());
+            complete[id] = true;
+            continue;
+        }
+        last_unvisited[id] = lu;
+        st.push(curr.OutNeighbours[lu]);
+    }
+}
+
