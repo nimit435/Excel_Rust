@@ -1,4 +1,4 @@
-enum celltype{
+pub enum celltype{
     Constant,
     Arithmetic(char),
     Min,
@@ -8,14 +8,14 @@ enum celltype{
     Stdev,
     Sleep
 }
-struct cell{
-    kind: celltype,
-    val: i32,
-    id: u32,
-    is_valid: bool,
-    op_val: Option<i32>,
-    cell1: Option<u32>,
-    cell2: Option<u32>
+pub struct cell{
+    pub kind: celltype,
+    pub val: i32,
+    pub id: u32,
+    pub is_valid: bool,
+    pub op_val: Option<i32>,
+    pub cell1: Option<i32>,
+    pub cell2: Option<i32>
 }
 struct sheet{
     rows: u32,
