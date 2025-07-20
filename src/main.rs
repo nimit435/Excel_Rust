@@ -1,9 +1,15 @@
-use Excel_Rust::{display::display_sheet, skeleton::Sheet};
+use Excel_Rust::{display::display_sheet, parsing, skeleton::Sheet};
 
 fn main() {
-    let mut sheet = Sheet::create_sheet(999, 18278);
+    let sheet = Sheet::create_sheet(10, 10);
     display_sheet(&sheet);
-    sheet.scroll_to("SEX420");
-    display_sheet(&sheet);
+
+
+    let input = "A255";
+
+    match parsing::parse_input(&input, &sheet) {
+        Ok(_) => println!(),
+        Err(e) => println!("{}", e),
+    }
 
 }

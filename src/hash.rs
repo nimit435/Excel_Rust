@@ -1,15 +1,28 @@
-pub fn separate_cell(input: &str)->(String, String){
+pub fn separate_cell(input: &str)->Result<(String, String), &'static str>{
     let mut numbers = String::new();
     let mut letters = String::new();
+    let mut seen_digit = false;
+
     for ch in input.chars(){
-        if ch.is_ascii_alphabetic(){
+        if ch.is_ascii_uppercase(){
+            if seen_digit{
+                return Err(Box::leak(format!("{}: Digits cannot come before alphabets", input).into_boxed_str()));
+            }
             letters.push(ch);
         }
         else if ch.is_ascii_digit(){
+            seen_digit = true;
             numbers.push(ch);
         }
+        else {
+            return Err(Box::leak(format!("{}: Only uppercase alphabets and numbers allowed", input).into_boxed_str()));
+        }
     }
-    (letters, numbers)
+    if letters.is_empty() || numbers.is_empty() {
+        return Err(Box::leak(format!("{}: Must contain both uppercase letters and digits", input).into_boxed_str()));
+    }
+
+    Ok((letters, numbers))
 }
 
 pub fn get_column(letters: &str)->u32{
@@ -21,7 +34,7 @@ pub fn get_column(letters: &str)->u32{
 }
 
 pub fn get_hash(input: &str, cols: u32)->u32{
-    let (letters, numbers) = separate_cell(input);
+    let (letters, numbers) = separate_cell(input).unwrap();
     let col = get_column(&letters)-1;
     let row = numbers.parse::<u32>().unwrap()-1;
     (row*cols)+col

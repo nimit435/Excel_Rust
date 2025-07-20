@@ -1,4 +1,4 @@
-use std::cmp::{max, min};
+use std::cmp::min;
 use crate::hash::{self, get_column};
 pub enum Celltype{
     Constant,
@@ -68,7 +68,7 @@ impl Sheet{
         self.is_display= false;
     }
     pub fn scroll_to(&mut self, input: &str){
-        let (letters, numbers) = hash::separate_cell(input);
+        let (letters, numbers) = hash::separate_cell(input).unwrap();
         let row = numbers.parse::<u32>().unwrap()-1;
         let col = get_column(&letters)-1;
 
