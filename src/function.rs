@@ -207,7 +207,6 @@ fn master(id:usize,mat:&mut Sheet)->i32{
 
     _=>{
         return 0;
-
     }
     }
     

@@ -12,21 +12,23 @@ pub fn parse_input(input: &str, sheet: &Sheet) -> Result<(), String> {
     validate_rhs(rhs, sheet)?;
     let (typ , opval, cell1, cell2, is_valid) = get_vals(rhs, sheet);
     
+    
     Ok(())
 }
 
 fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Option<i32>, bool){
+    let temp = validate_rhs(rhs, sheet).unwrap();
     let mut t = Celltype::Constant;
     let mut opval:Option<i32> = None;
     let mut cell1:Option<i32> = None;
     let mut cell2:Option<i32> = None;
     let mut is_valid= true;
-    if validate_rhs(rhs, sheet).unwrap() == 0{
+    if temp == 0{
         let num = rhs.parse::<i32>().unwrap();
         opval = Some(num);
         return (t, opval, cell1, cell2, is_valid);
     }
-    else if validate_rhs(rhs, sheet).unwrap() == 1{
+    else if temp == 1{
         if is_valid_cell(rhs, sheet).is_ok(){
             opval = Some(0);
             t = Celltype::Arithmetic('+');
@@ -77,15 +79,14 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
         return (t, opval, cell1, cell2, is_valid);
     }
   
-    else{
+    else if temp==2 {
         let (func, range_name) = split_for_parenthesis(rhs).unwrap();
         t = match func {
-            "MIN" => Celltype::Min,
-            "MAX" => Celltype::Max,
-            "SUM" => Celltype::Sum,
-            "AVG" => Celltype::Avg,
-            "STDEV" => Celltype::Stdev,
-            "SLEEP" => Celltype::Sleep,
+            "MIN" => Celltype::minimum,
+            "MAX" => Celltype::maximum,
+            "SUM" => Celltype::sum,
+            "AVG" => Celltype::avg,
+            "STDEV" => Celltype::stdev,
             _ => Celltype::Constant,
         };
         match range_name.split_once(':') {
@@ -97,6 +98,18 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
         }
                     
         return (t, opval, cell1, cell2, is_valid);
+    }
+    else{
+        let (_func, arg) = split_for_parenthesis(rhs).unwrap();
+        t = Celltype::sleep;
+        if(is_valid_cell(arg, sheet)).is_ok(){
+            cell1 = Some(hash::get_hash(arg, sheet.cols) as i32);
+        }
+        else{
+            opval = Some(arg.parse::<i32>().unwrap()); 
+        }
+        return (t, opval, cell1, cell2, is_valid);
+
     }
 }
 
@@ -153,8 +166,20 @@ fn validate_rhs(rhs: &str, sheet: &Sheet) -> Result<u32, String> {
     }
     else {
         if let Some((func_name, range_str)) = split_for_parenthesis(rhs) {
-            is_valid_range(range_str, sheet)?;
+            
             is_valid_func(func_name)?;
+            if func_name == "SLEEP"{
+                if(is_valid_cell(range_str, sheet)).is_ok(){
+                    return Ok(3);
+                }
+                else if(is_valid_number(range_str)).is_ok(){
+                    return Ok(3);
+                }
+                else{
+                    return Err(format!("{}: Invalid RHS.", rhs));
+                }
+            }
+            is_valid_range(range_str, sheet)?;
             return Ok(2);
         } else {
             return Err(format!("{}: Invalid RHS.", rhs));
