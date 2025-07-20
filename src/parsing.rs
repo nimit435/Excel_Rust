@@ -99,6 +99,7 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
     }
 
 }
+
 fn is_valid_cell(input: &str, sheet: &Sheet) -> Result<(), String> {
     let (letters, numbers) = hash::separate_cell(input)
         .map_err(|err| err.to_string())?;
@@ -206,13 +207,14 @@ fn is_valid_number(input: &str) -> Result<(), String> {
     }
 }
 
-fn split_by_operators(input: &str)->Option<(&str, &str, &str)>{
-
-    let re = Regex::new(r"([+\-*/])").unwrap();
-    if let Some(m) = re.find(input) {
-        let op = m.as_str();
-        let (lhs, rhs) = input.split_at(m.start());
-        Some((lhs.trim(), op, rhs[1..].trim()))
+fn split_by_operators(input: &str) -> Option<(&str, &str, &str)> {
+    
+    let re = Regex::new(r"^(-?\d+)\s*([+\-*/])\s*(-?\d+)$").unwrap();
+    if let Some(caps) = re.captures(input.trim()) {
+        let lhs = caps.get(1)?.as_str();
+        let op = caps.get(2)?.as_str();
+        let rhs = caps.get(3)?.as_str();
+        Some((lhs.trim(), op, rhs.trim()))
     } else {
         None
     }
