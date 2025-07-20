@@ -1,5 +1,6 @@
 use std::cmp::min;
 use crate::hash::{self, get_column};
+use std::ptr;
 pub enum Celltype{
     Constant,
     Arithmetic(char),
@@ -79,3 +80,37 @@ impl Sheet{
     
 
 }
+
+struct Linked_list_node{
+    val:Option<u32>,
+    next:Option<Box<Linked_list_node>>,
+}
+impl Linked_list_node{
+    pub fn new(val:Option<u32>)->Self{
+        Linked_list_node{val,next:None}
+    }
+}
+struct LinkedList{
+    head:Option<Box<Linked_list_node>>,
+    tail:*mut Linked_list_node,
+}
+
+impl LinkedList{
+    pub fn new()->Self{
+        LinkedList{head:None,tail:std::ptr::null_mut()}
+    }
+    pub fn push(&mut self,id:u32){
+        let mut newnode = Box::new(Linked_list_node::new(Some(id)));
+        let p:*mut _ = &mut *newnode;
+        if self.head.is_none(){
+            self.head = Some(  newnode);
+            self.tail = p;
+        }
+        else{
+            unsafe{
+            (*self.tail).next = Some(newnode);}
+            self.tail = p;
+        }
+    }
+}
+
