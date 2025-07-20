@@ -3,12 +3,12 @@ use crate::hash::{self, get_column};
 pub enum Celltype{
     Constant,
     Arithmetic(char),
-    minimum,
-    maximum,
-    sum,
-    avg,
-    stdev,
-    sleep,
+    Min,
+    Max,
+    Sum,
+    Avg,
+    Stdev,
+    Sleep,
 }
 pub struct Cell{
     pub kind: Celltype,

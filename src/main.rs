@@ -6,9 +6,9 @@ fn main() {
     sheet.matrix[0].is_valid = false;
     display_sheet(&sheet);
 
-    let input = "A1=SUM(C1:B2)";
+    let input = "A1=-4+-4";
 
-    match parsing::parse_input(&input, &sheet) {
+    match parsing::parse_input(&input, &mut sheet) {
         Ok(_) => println!(),
         Err(e) => println!("{}", e),
     }

@@ -1,5 +1,4 @@
 use crate::skeleton::{Cell,Sheet,Celltype};
-use std::cmp::{min,max};
 use std::time::Duration;
 use std::thread;
 
@@ -169,25 +168,25 @@ fn master(id:usize,mat:&mut Sheet)->i32{
             }
             return 1;
         },
-    Celltype::minimum=>{ // minimum(RANGE)
+    Celltype::Min=>{ // minimum(RANGE)
         minimum( from_row,from_col,to_row,to_col,mat,id);
         
         return 1;
 
     },
-    Celltype::maximum=>{ // maximum(RANGE)
+    Celltype::Max=>{ // maximum(RANGE)
 
         maximum( from_row,from_col,to_row,to_col,mat,id);
         return 1;
 
     },
 
-    Celltype::avg=> { // avg(RANGE)
+    Celltype::Avg=> { // avg(RANGE)
         avg( from_row,from_col,to_row,to_col,mat,id);
         return 1;
     },
 
-    Celltype::sum=> { // sum(RANGE)
+    Celltype::Sum=> { // sum(RANGE)
 
         sum( from_row,from_col,to_row,to_col,mat, id);
 
@@ -195,12 +194,12 @@ fn master(id:usize,mat:&mut Sheet)->i32{
 
     },
 
-    Celltype::stdev=> { // stdev(RANGE)
+    Celltype::Stdev=> { // stdev(RANGE)
         stdev( from_row,from_col,to_row,to_col,mat,id);
         return 1;
     }
 
-    Celltype::sleep=>{ // sleep(RANGE)
+    Celltype::Sleep=>{ // sleep(RANGE)
         sleep(id,mat);
         return 1;     
     }
@@ -251,7 +250,7 @@ fn avg(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum = 0;
     for i in f_r..=t_r{
-        for j in f_c..=f_r{
+        for j in f_c..=t_c{
             if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
                 mat.matrix[id].is_valid = false;
                 return;
@@ -271,7 +270,7 @@ fn sum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum:i32 = 0;
     for i in f_r..=t_r{
-        for j in f_c..=f_r{
+        for j in f_c..=t_c{
             if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
                 mat.matrix[id].is_valid = false;
                 return;
@@ -313,7 +312,7 @@ fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 }
 
 fn sleep(id:usize,mat:&mut Sheet){
-    if(mat.matrix[id].cell1.unwrap_or(-1) == -1){
+    if mat.matrix[id].cell1.unwrap_or(-1) == -1{
         let sec : i32 = mat.matrix[id].op_val.unwrap();
         assert!(sec>0,"Seconds can't be negative");
         thread::sleep(Duration::from_secs(sec as u64));
@@ -334,7 +333,7 @@ fn sleep(id:usize,mat:&mut Sheet){
     }
 }
 
-fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cell2:Option<i32>,flag:&mut bool,t :i32,stack:&mut Vec<u32>){
+pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i32>, flag:&mut bool, t :i32, stack:&mut Vec<u32>){
     let mut st:Vec<u32> = Vec::new();
     let mut last_unvisited:Vec<usize> = vec![0;(mat.cols as usize)*(mat.rows as usize) ];
     st.push(mat.matrix[id].id);
@@ -344,7 +343,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
         let curr : &Cell = &mat.matrix[id];
 
         if vis[id]==false{
-            if t > 1 && t < 7 {
+            if t ==2 {
                 if (id / mat.cols as usize) >= (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id / mat.cols as usize) <= (cell2.unwrap_or(-1)as usize / mat.cols as usize) {
                     if (id % mat.cols as usize) >= (cell1.unwrap_or(-1)as usize % mat.cols as usize) && (id % mat.cols as usize) <= (cell2.unwrap_or(-1) as usize% mat.cols as usize){
                         *flag = true;
@@ -359,7 +358,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
                     if (id / mat.cols as usize) == (cell2.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell2.unwrap_or(-1)as usize % mat.cols as usize) {
                         *flag = true;
                     }
-                } else if (cell1.unwrap_or(-1) == -1) {
+                } else if cell1.unwrap_or(-1) == -1 {
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize% mat.cols as usize) {
                         *flag = true;
                     }
@@ -368,7 +367,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
                         *flag = true;
                     }
                 }
-            } else if t == 7 {
+            } else if t == 3 {
                 if cell1.unwrap_or(-1) == -1{
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize % mat.cols as usize) {
                         *flag = true;
@@ -397,7 +396,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
     }
 }
 
-fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<i64>){
+pub fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<i64>){
     
     while stack.len() > 0 {
         let id:usize = stack.pop().unwrap() as usize;

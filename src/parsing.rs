@@ -1,9 +1,10 @@
+use crate::function::check_cycle;
 use crate::skeleton::Sheet;
 use crate::skeleton::Celltype;
 use crate::hash;
 use regex::Regex;
 
-pub fn parse_input(input: &str, sheet: &Sheet) -> Result<(), String> {
+pub fn parse_input(input: &str, sheet: &mut Sheet) -> Result<(), String> {
     let (lhs, rhs) = input
         .split_once('=')
         .ok_or_else(|| "Missing '=' in the input".to_string())?;
@@ -11,7 +12,24 @@ pub fn parse_input(input: &str, sheet: &Sheet) -> Result<(), String> {
     is_valid_cell(lhs, sheet)?;
     validate_rhs(rhs, sheet)?;
     let (typ , opval, cell1, cell2, is_valid) = get_vals(rhs, sheet);
-    
+    let mut stack: Vec<u32> = Vec::new();
+    let mut flag: bool = false;
+    let t: i32 = match typ{
+        Celltype::Constant=> 0,
+        Celltype::Arithmetic(_) => 1,
+        Celltype::Sleep => 3,
+        _ => 2
+    };
+    let n = sheet.cols*sheet.rows;
+    let id: usize = hash::get_hash(lhs, sheet.cols) as usize;
+    let mut vis: Vec<bool> = vec![false; n as usize];
+    check_cycle(id as usize , &mut vis,  sheet, &cell1, &cell2, &mut flag, t, &mut stack);
+    if !is_valid{
+        sheet.matrix[id].is_valid = false;
+    }
+    if flag{
+        return Err(String::from("This input forms a cyclic dependency."));
+    }
     
     Ok(())
 }
@@ -82,11 +100,11 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
     else if temp==2 {
         let (func, range_name) = split_for_parenthesis(rhs).unwrap();
         t = match func {
-            "MIN" => Celltype::minimum,
-            "MAX" => Celltype::maximum,
-            "SUM" => Celltype::sum,
-            "AVG" => Celltype::avg,
-            "STDEV" => Celltype::stdev,
+            "MIN" => Celltype::Min,
+            "MAX" => Celltype::Max,
+            "SUM" => Celltype::Sum,
+            "AVG" => Celltype::Avg,
+            "STDEV" => Celltype::Stdev,
             _ => Celltype::Constant,
         };
         match range_name.split_once(':') {
@@ -101,7 +119,7 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
     }
     else{
         let (_func, arg) = split_for_parenthesis(rhs).unwrap();
-        t = Celltype::sleep;
+        t = Celltype::Sleep;
         if(is_valid_cell(arg, sheet)).is_ok(){
             cell1 = Some(hash::get_hash(arg, sheet.cols) as i32);
         }
