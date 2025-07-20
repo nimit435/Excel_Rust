@@ -8,7 +8,7 @@ use std::thread;
 // and check the cycle.
 // Improvements:
 // Though still O(m+n) , no need for linked stack with added butter rust compilation.
-fn MASTER(id:usize,mat:&mut Sheet)->i32{
+fn master(id:usize,mat:&mut Sheet)->i32{
     let max_col = mat.cols;
     let index_1 = mat.matrix[id].cell1.unwrap_or(-1);
     let index_2 = mat.matrix[id].cell2.unwrap_or(-1);
@@ -169,39 +169,39 @@ fn MASTER(id:usize,mat:&mut Sheet)->i32{
             }
             return 1;
         },
-    Celltype::MIN=>{ // MIN(RANGE)
-        MIN( from_row,from_col,to_row,to_col,mat,id);
+    Celltype::minimum=>{ // minimum(RANGE)
+        minimum( from_row,from_col,to_row,to_col,mat,id);
         
         return 1;
 
     },
-    Celltype::MAX=>{ // MAX(RANGE)
+    Celltype::maximum=>{ // maximum(RANGE)
 
-        MAX( from_row,from_col,to_row,to_col,mat,id);
+        maximum( from_row,from_col,to_row,to_col,mat,id);
         return 1;
 
     },
 
-    Celltype::AVG=> { // AVG(RANGE)
-        AVG( from_row,from_col,to_row,to_col,mat,id);
+    Celltype::avg=> { // avg(RANGE)
+        avg( from_row,from_col,to_row,to_col,mat,id);
         return 1;
     },
 
-    Celltype::SUM=> { // SUM(RANGE)
+    Celltype::sum=> { // sum(RANGE)
 
-        SUM( from_row,from_col,to_row,to_col,mat, id);
+        sum( from_row,from_col,to_row,to_col,mat, id);
 
         return 1;
 
     },
 
-    Celltype::STDEV=> { // STDEV(RANGE)
-        STDEV( from_row,from_col,to_row,to_col,mat,id);
+    Celltype::stdev=> { // stdev(RANGE)
+        stdev( from_row,from_col,to_row,to_col,mat,id);
         return 1;
     }
 
-    Celltype::SLEEP=>{ // SLEEP(RANGE)
-        SLEEP(id,mat);
+    Celltype::sleep=>{ // sleep(RANGE)
+        sleep(id,mat);
         return 1;     
     }
 
@@ -214,7 +214,7 @@ fn MASTER(id:usize,mat:&mut Sheet)->i32{
 }
 
 
-fn MAX(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
+fn maximum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mut mx = i32::MIN;
     for i in f_r..=t_r{
         for j in f_c..=t_c{
@@ -231,8 +231,8 @@ fn MAX(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
-fn MIN(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
-    let mut mn = i32::MIN;
+fn minimum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
+    let mut mn:i32 = i32::MIN;
     for i in f_r..=t_r{
         for j in f_c..=t_c{
             if mat.matrix[i as usize*mat.cols as usize+ j as usize].is_valid == false{
@@ -248,7 +248,7 @@ fn MIN(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
-fn AVG(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
+fn avg(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum = 0;
     for i in f_r..=t_r{
@@ -268,7 +268,7 @@ fn AVG(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
-fn SUM(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
+fn sum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum:i32 = 0;
     for i in f_r..=t_r{
@@ -286,7 +286,7 @@ fn SUM(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
-fn STDEV(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
+fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum:i64 = 0;
     for i in f_r..=t_r{
@@ -313,7 +313,7 @@ fn STDEV(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
-fn SLEEP(id:usize,mat:&mut Sheet){
+fn sleep(id:usize,mat:&mut Sheet){
     if(mat.matrix[id].cell1.unwrap_or(-1) == -1){
         let sec : i32 = mat.matrix[id].op_val.unwrap();
         assert!(sec>0,"Seconds can't be negative");
@@ -335,7 +335,7 @@ fn SLEEP(id:usize,mat:&mut Sheet){
     }
 }
 
-fn CHECK_CYCLE(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cell2:Option<i32>,flag:&mut bool,t :i32,stack:&mut Vec<u32>){
+fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cell2:Option<i32>,flag:&mut bool,t :i32,stack:&mut Vec<u32>){
     let mut st:Vec<u32> = Vec::new();
     let mut last_unvisited:Vec<usize> = vec![0;(mat.cols as usize)*(mat.rows as usize) ];
     st.push(mat.matrix[id].id);
@@ -400,8 +400,8 @@ fn CHECK_CYCLE(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
 
 fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<i64>){
     
-    while(stack.len() > 0){
+    while stack.len() > 0 {
         let id:usize = stack.pop().unwrap() as usize;
-        MASTER(id,mat); 
+        master(id,mat); 
     }
 }
