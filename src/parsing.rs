@@ -23,4 +23,7 @@ fn is_valid_cell(input: &str, sheet: &Sheet)->Result<(), &'static str>{
     }
     Ok(())
 }
+fn is_valid_number(input: &str){
+
+}
 
