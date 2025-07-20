@@ -1,18 +1,18 @@
 enum celltype{
     Constant,
     Arithmetic(char),
-    Min,
-    Max,
-    Sum,
-    Avg,
-    Stdev,
-    Sleep
+    MIN,
+    MAX,
+    SUM,
+    AVG,
+    STDEV,
+    SLEEP,
 }
 struct cell{
     kind: celltype,
     val: i32,
     id: u32,
-    is_valid: bool,
+    is_Valid: bool,
     op_val: Option<i32>,
     cell1: Option<u32>,
     cell2: Option<u32>
