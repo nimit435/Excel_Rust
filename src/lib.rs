@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 pub mod skeleton;
-// pub mod function;
+pub mod function;
 pub mod display;
 pub mod hash;
 pub mod parsing;
