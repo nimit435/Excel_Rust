@@ -5,7 +5,7 @@ fn main() {
     display_sheet(&sheet);
 
 
-    let input = "A255";
+    let input = "A=43";
 
     match parsing::parse_input(&input, &sheet) {
         Ok(_) => println!(),

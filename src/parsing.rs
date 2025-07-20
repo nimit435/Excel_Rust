@@ -10,7 +10,7 @@ pub fn parse_input(input: &str, sheet: &Sheet)->Result<(), &'static str>{
     
     Ok(())
 }
-pub fn is_valid_cell(input: &str, sheet: &Sheet)->Result<(), &'static str>{
+fn is_valid_cell(input: &str, sheet: &Sheet)->Result<(), &'static str>{
     let (letters, numbers) = hash::separate_cell(input)
                                                 .map_err(|err| err)?;
     let rows = numbers.parse::<u32>().unwrap();
@@ -23,6 +23,4 @@ pub fn is_valid_cell(input: &str, sheet: &Sheet)->Result<(), &'static str>{
     }
     Ok(())
 }
-pub fn validate_rhs(input: &str, sheet: &Sheet)->Result<(&str, &str), &'static str>{
-    
-}
+
