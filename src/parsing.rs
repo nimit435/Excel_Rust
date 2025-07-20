@@ -14,6 +14,7 @@ pub fn parse_input(input: &str, sheet: &Sheet) -> Result<(), String> {
     
     Ok(())
 }
+
 fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Option<i32>, bool){
     let mut t = Celltype::Constant;
     let mut opval:Option<i32> = None;
@@ -97,7 +98,6 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
                     
         return (t, opval, cell1, cell2, is_valid);
     }
-
 }
 
 fn is_valid_cell(input: &str, sheet: &Sheet) -> Result<(), String> {
