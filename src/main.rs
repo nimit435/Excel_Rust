@@ -65,19 +65,11 @@ fn main() {
             }
         }
         else{
-<<<<<<< HEAD
             parse_input(input,sheet).unwrap();
         }
         let timed = strt.elapsed().as_secs_f64();
         display_sheet(sheet);
         if suc{
-=======
-            parse_intput(input,sheet).unwrap();
-        }
-        let timed = strt.elapsed().as_secs_f64();
-        sheet.display_sheet();
-        if(suc){
->>>>>>> nimit
             println!("[{}] (ok) > ",timed);
         }
         else{
