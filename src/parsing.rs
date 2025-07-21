@@ -1,4 +1,7 @@
+use crate::function::add_edge;
 use crate::function::check_cycle;
+use crate::function::delete_edge;
+use crate::function::recalculate_node;
 use crate::skeleton::Sheet;
 use crate::skeleton::Celltype;
 use crate::hash;
@@ -30,8 +33,18 @@ pub fn parse_input(input: &str, sheet: &mut Sheet) -> Result<(), String> {
     if flag{
         return Err(String::from("This input forms a cyclic dependency."));
     }
-    
+    delete_edge(sheet, id);
+    assign_values(typ, opval, cell1, cell2, id, sheet);
+    add_edge(sheet, id);
+    recalculate_node(sheet, &mut stack);
     Ok(())
+}
+
+fn assign_values(typ: Celltype, opval: Option<i32>, cell1: Option<i32>, cell2: Option<i32>, id: usize, sheet: &mut Sheet){
+    sheet.matrix[id].kind = typ;
+    sheet.matrix[id].op_val = opval;
+    sheet.matrix[id].cell1 = cell1;
+    sheet.matrix[id].cell2 = cell2;
 }
 
 fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Option<i32>, bool){
