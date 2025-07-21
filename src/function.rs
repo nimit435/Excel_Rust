@@ -1,5 +1,4 @@
 use crate::skeleton::{Cell,Sheet,Celltype};
-use std::cmp::{min,max};
 use std::time::Duration;
 use std::thread;
 
@@ -169,25 +168,25 @@ fn master(id:usize,mat:&mut Sheet)->i32{
             }
             return 1;
         },
-    Celltype::minimum=>{ // minimum(RANGE)
+    Celltype::Min=>{ // minimum(RANGE)
         minimum( from_row,from_col,to_row,to_col,mat,id);
         
         return 1;
 
     },
-    Celltype::maximum=>{ // maximum(RANGE)
+    Celltype::Max=>{ // maximum(RANGE)
 
         maximum( from_row,from_col,to_row,to_col,mat,id);
         return 1;
 
     },
 
-    Celltype::avg=> { // avg(RANGE)
+    Celltype::Avg=> { // avg(RANGE)
         avg( from_row,from_col,to_row,to_col,mat,id);
         return 1;
     },
 
-    Celltype::sum=> { // sum(RANGE)
+    Celltype::Sum=> { // sum(RANGE)
 
         sum( from_row,from_col,to_row,to_col,mat, id);
 
@@ -195,19 +194,18 @@ fn master(id:usize,mat:&mut Sheet)->i32{
 
     },
 
-    Celltype::stdev=> { // stdev(RANGE)
+    Celltype::Stdev=> { // stdev(RANGE)
         stdev( from_row,from_col,to_row,to_col,mat,id);
         return 1;
     }
 
-    Celltype::sleep=>{ // sleep(RANGE)
+    Celltype::Sleep=>{ // sleep(RANGE)
         sleep(id,mat);
         return 1;     
     }
 
     _=>{
         return 0;
-
     }
     }
     
@@ -248,11 +246,12 @@ fn minimum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
+
 fn avg(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum = 0;
     for i in f_r..=t_r{
-        for j in f_c..=f_r{
+        for j in f_c..=t_c{
             if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
                 mat.matrix[id].is_valid = false;
                 return;
@@ -272,7 +271,7 @@ fn sum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum:i32 = 0;
     for i in f_r..=t_r{
-        for j in f_c..=f_r{
+        for j in f_c..=t_c{
             if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
                 mat.matrix[id].is_valid = false;
                 return;
@@ -314,7 +313,7 @@ fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 }
 
 fn sleep(id:usize,mat:&mut Sheet){
-    if(mat.matrix[id].cell1.unwrap_or(-1) == -1){
+    if mat.matrix[id].cell1.unwrap_or(-1) == -1{
         let sec : i32 = mat.matrix[id].op_val.unwrap();
         assert!(sec>0,"Seconds can't be negative");
         thread::sleep(Duration::from_secs(sec as u64));
@@ -335,7 +334,7 @@ fn sleep(id:usize,mat:&mut Sheet){
     }
 }
 
-fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cell2:Option<i32>,flag:&mut bool,t :i32,stack:&mut Vec<u32>){
+pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i32>, flag:&mut bool, t :i32, stack:&mut Vec<u32>){
     let mut st:Vec<u32> = Vec::new();
     let mut last_unvisited:Vec<usize> = vec![0;(mat.cols as usize)*(mat.rows as usize) ];
     st.push(mat.matrix[id].id);
@@ -345,7 +344,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
         let curr : &Cell = &mat.matrix[id];
 
         if vis[id]==false{
-            if t > 1 && t < 7 {
+            if t ==2 {
                 if (id / mat.cols as usize) >= (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id / mat.cols as usize) <= (cell2.unwrap_or(-1)as usize / mat.cols as usize) {
                     if (id % mat.cols as usize) >= (cell1.unwrap_or(-1)as usize % mat.cols as usize) && (id % mat.cols as usize) <= (cell2.unwrap_or(-1) as usize% mat.cols as usize){
                         *flag = true;
@@ -360,7 +359,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
                     if (id / mat.cols as usize) == (cell2.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell2.unwrap_or(-1)as usize % mat.cols as usize) {
                         *flag = true;
                     }
-                } else if (cell1.unwrap_or(-1) == -1) {
+                } else if cell1.unwrap_or(-1) == -1 {
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize% mat.cols as usize) {
                         *flag = true;
                     }
@@ -369,7 +368,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
                         *flag = true;
                     }
                 }
-            } else if t == 7 {
+            } else if t == 3 {
                 if cell1.unwrap_or(-1) == -1{
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize % mat.cols as usize) {
                         *flag = true;
@@ -380,8 +379,7 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
         vis[id]=true;
         if *flag{
             return;
-        }
-
+        }                                                                                           
         let mut lu:usize = last_unvisited[id];
         while lu<curr.out_neighbors.len(){
             if !vis[curr.out_neighbors[lu] as usize] {
@@ -397,8 +395,89 @@ fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1:Option<i32>,cel
         st.push(curr.out_neighbors[lu]);
     }
 }
-
-fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<i64>){
+pub fn delete_edge(sheet: &mut Sheet, id: usize){
+    let typ  = &sheet.matrix[id].kind;
+    let t = match typ{
+        Celltype::Constant => 0, 
+        Celltype::Arithmetic(_) => 1,
+        Celltype::Sleep => 3,
+        _ => 2,
+    };
+    if t==3{
+        if sheet.matrix[id].cell1.is_some(){
+            let ind = sheet.matrix[id].cell1.unwrap();
+            if let Some(pos) = sheet.matrix[ind as usize].out_neighbors.iter().position(|x| *x==id as u32){
+                sheet.matrix[ind as usize].out_neighbors.swap_remove(pos);
+            }
+        }
+    }
+    else if t==2{
+        let cols = sheet.cols as i32;
+        let cell1 = sheet.matrix[id].cell1.unwrap();
+        let cell2 = sheet.matrix[id].cell2.unwrap();
+        let row1 = cell1/cols;
+        let col1 = cell1%cols;
+        let row2 = cell2/cols;
+        let col2 = cell2%cols;
+        for i in row1..=row2{
+            for j in col1..=col2{
+                let idx = ((i*cols)+j) as usize;
+                if let Some(pos) = sheet.matrix[idx].out_neighbors.iter().position(|x| *x==id as u32){
+                    sheet.matrix[idx].out_neighbors.swap_remove(pos);
+                }
+            }
+        }
+    }
+    else if t==1{
+        if sheet.matrix[id].cell1.is_some(){
+            let ind = sheet.matrix[id].cell1.unwrap();
+            if let Some(pos) = sheet.matrix[ind as usize].out_neighbors.iter().position(|x| *x==id as u32){
+                sheet.matrix[ind as usize].out_neighbors.swap_remove(pos);
+            }
+        }
+        if sheet.matrix[id].cell2.is_some(){
+            let ind = sheet.matrix[id].cell2.unwrap();
+            if let Some(pos) = sheet.matrix[ind as usize].out_neighbors.iter().position(|x| *x==id as u32){
+                sheet.matrix[ind as usize].out_neighbors.swap_remove(pos);
+            }
+        }
+    }
+}
+pub fn add_edge(sheet: &mut Sheet, id: usize){
+    let typ  = &sheet.matrix[id].kind;
+    let t = match typ{
+        Celltype::Constant => 0, 
+        Celltype::Arithmetic(_) => 1,
+        Celltype::Sleep => 3,
+        _ => 2,
+    };
+    if t==3 || t==1{
+        if sheet.matrix[id].cell1.is_some(){
+            let ind = sheet.matrix[id].cell1.unwrap();
+            sheet.matrix[ind as usize].out_neighbors.push(id as u32);
+        }
+        if sheet.matrix[id].cell2.is_some(){
+            let ind = sheet.matrix[id].cell2.unwrap();
+            sheet.matrix[ind as usize].out_neighbors.push(id as u32);
+        }
+    }
+    else if t==2{
+        let cols = sheet.cols as i32;
+        let cell1 = sheet.matrix[id].cell1.unwrap();
+        let cell2 = sheet.matrix[id].cell2.unwrap();
+        let row1 = cell1/cols;
+        let col1 = cell1%cols;
+        let row2 = cell2/cols;
+        let col2 = cell2%cols;
+        for i in row1..=row2{
+            for j in col1..=col2{
+                let idx = ((i*cols)+j) as usize;
+                sheet.matrix[idx].out_neighbors.push(id as u32);
+            }
+        }
+    }
+}
+pub fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<u32>){
     
     while stack.len() > 0 {
         let id:usize = stack.pop().unwrap() as usize;
