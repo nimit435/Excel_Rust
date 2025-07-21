@@ -75,16 +75,17 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
                     '+' => Some(num1 + num2),
                     '-' => Some(num1 - num2),
                     '*' => Some(num1 * num2),
-                    '/' => {
-                        if num2 == 0 {
-                            is_valid = false;
-                            None
-                        } else {
-                            Some(num1 / num2)
-                        }
-                    }
+                    '/' => Some(1),
                     _ => None,
                 };
+                if op_char == '/'{
+                    if num2 ==0{
+                        is_valid = false;
+                    }
+                    else{
+                        opval = Some(num1/num2);
+                    }
+                }
             }
             else if is_valid_number(lhs_part).is_ok(){
                 let num1 = lhs_part.parse::<i32>().unwrap();
@@ -264,8 +265,8 @@ fn is_valid_number(input: &str) -> Result<(), String> {
 }
 
 fn split_by_operators(input: &str) -> Option<(&str, &str, &str)> {
-    
-    let re = Regex::new(r"^(-?\d+)\s*([+\-*/])\s*(-?\d+)$").unwrap();
+    // Match: cell or number, operator, cell or number
+    let re = Regex::new(r"^([A-Za-z]+\d+|-?\d+)\s*([+\-*/])\s*([A-Za-z]+\d+|-?\d+)$").unwrap();
     if let Some(caps) = re.captures(input.trim()) {
         let lhs = caps.get(1)?.as_str();
         let op = caps.get(2)?.as_str();
