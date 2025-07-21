@@ -56,7 +56,7 @@ fn main() {
         else if input.len()>=10{
             if input.to_lowercase()[..10] == "scroll_to"{
                 let cell = String::from(&input[10..]);
-                if sheet.isvalidcell(cell){
+                if sheet.is_valid_cell(cell){
                     sheet.scroll_to(cell);
                 }
                 else{
