@@ -56,13 +56,11 @@ fn main() {
         else if input.to_lowercase() == "enable_output"{
             sheet.enable_display();
         }
-        else if input.len()>=10{
-            if input.to_lowercase().starts_with("scroll_to"){
-                let cell: Vec<&str> = input.split_whitespace().collect();
-                match is_valid_cell(&cell[1],&sheet){
-                    Ok(_)=>{sheet.scroll_to(&cell[1]);},
-                    _=>{suc = false;},
-                }
+        else if input.to_lowercase().starts_with("scroll_to"){
+            let cell: Vec<&str> = input.split_whitespace().collect();
+            match is_valid_cell(&cell[1],&sheet){                    
+                Ok(_)=>{sheet.scroll_to(&cell[1]);},
+                _=>{suc = false;},
             }
         }
         else{

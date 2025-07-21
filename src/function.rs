@@ -337,7 +337,7 @@ fn sleep(id:usize,mat:&mut Sheet){
 pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i32>, flag:&mut bool, t :i32, stack:&mut Vec<u32>){
     let mut st:Vec<u32> = Vec::new();
     let mut last_unvisited:Vec<usize> = vec![0;(mat.cols as usize)*(mat.rows as usize) ];
-    st.push(mat.matrix[id].id);
+    st.push(id as u32);
     while st.len() > 0 {
 
         let id:usize = st[st.len()-1] as usize;
@@ -352,14 +352,14 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
                     }
                 }
             } else if t == 1 {
-                if cell2.unwrap_or(-1) == -1&& cell1.unwrap_or(-1) == -1{
+                if cell2.unwrap_or(-1) != -1&& cell1.unwrap_or(-1) != -1{
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1)  as usize% mat.cols as usize) {
                         *flag = true;
                     }
                     if (id / mat.cols as usize) == (cell2.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell2.unwrap_or(-1)as usize % mat.cols as usize) {
                         *flag = true;
                     }
-                } else if cell1.unwrap_or(-1) == -1 {
+                } else if cell1.unwrap_or(-1) != -1 {
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize% mat.cols as usize) {
                         *flag = true;
                     }
@@ -369,7 +369,7 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
                     }
                 }
             } else if t == 3 {
-                if cell1.unwrap_or(-1) == -1{
+                if cell1.unwrap_or(-1) != -1{
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize % mat.cols as usize) {
                         *flag = true;
                     }
