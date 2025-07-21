@@ -246,6 +246,7 @@ fn minimum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 
 }
 
+
 fn avg(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum = 0;
@@ -394,8 +395,89 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
         st.push(curr.out_neighbors[lu]);
     }
 }
-
-pub fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<i64>){
+pub fn delete_edge(sheet: &mut Sheet, id: usize){
+    let typ  = &sheet.matrix[id].kind;
+    let t = match typ{
+        Celltype::Constant => 0, 
+        Celltype::Arithmetic(_) => 1,
+        Celltype::Sleep => 3,
+        _ => 2,
+    };
+    if t==3{
+        if sheet.matrix[id].cell1.is_some(){
+            let ind = sheet.matrix[id].cell1.unwrap();
+            if let Some(pos) = sheet.matrix[ind as usize].out_neighbors.iter().position(|x| *x==id as u32){
+                sheet.matrix[ind as usize].out_neighbors.swap_remove(pos);
+            }
+        }
+    }
+    else if t==2{
+        let cols = sheet.cols as i32;
+        let cell1 = sheet.matrix[id].cell1.unwrap();
+        let cell2 = sheet.matrix[id].cell2.unwrap();
+        let row1 = cell1/cols;
+        let col1 = cell1%cols;
+        let row2 = cell2/cols;
+        let col2 = cell2%cols;
+        for i in row1..=row2{
+            for j in col1..=col2{
+                let idx = ((i*cols)+j) as usize;
+                if let Some(pos) = sheet.matrix[idx].out_neighbors.iter().position(|x| *x==id as u32){
+                    sheet.matrix[idx].out_neighbors.swap_remove(pos);
+                }
+            }
+        }
+    }
+    else if t==1{
+        if sheet.matrix[id].cell1.is_some(){
+            let ind = sheet.matrix[id].cell1.unwrap();
+            if let Some(pos) = sheet.matrix[ind as usize].out_neighbors.iter().position(|x| *x==id as u32){
+                sheet.matrix[ind as usize].out_neighbors.swap_remove(pos);
+            }
+        }
+        if sheet.matrix[id].cell2.is_some(){
+            let ind = sheet.matrix[id].cell2.unwrap();
+            if let Some(pos) = sheet.matrix[ind as usize].out_neighbors.iter().position(|x| *x==id as u32){
+                sheet.matrix[ind as usize].out_neighbors.swap_remove(pos);
+            }
+        }
+    }
+}
+pub fn add_edge(sheet: &mut Sheet, id: usize){
+    let typ  = &sheet.matrix[id].kind;
+    let t = match typ{
+        Celltype::Constant => 0, 
+        Celltype::Arithmetic(_) => 1,
+        Celltype::Sleep => 3,
+        _ => 2,
+    };
+    if t==3 || t==1{
+        if sheet.matrix[id].cell1.is_some(){
+            let ind = sheet.matrix[id].cell1.unwrap();
+            sheet.matrix[ind as usize].out_neighbors.push(id as u32);
+        }
+        if sheet.matrix[id].cell2.is_some(){
+            let ind = sheet.matrix[id].cell2.unwrap();
+            sheet.matrix[ind as usize].out_neighbors.push(id as u32);
+        }
+    }
+    else if t==2{
+        let cols = sheet.cols as i32;
+        let cell1 = sheet.matrix[id].cell1.unwrap();
+        let cell2 = sheet.matrix[id].cell2.unwrap();
+        let row1 = cell1/cols;
+        let col1 = cell1%cols;
+        let row2 = cell2/cols;
+        let col2 = cell2%cols;
+        for i in row1..=row2{
+            for j in col1..=col2{
+                let idx = ((i*cols)+j) as usize;
+                sheet.matrix[idx].out_neighbors.push(id as u32);
+            }
+        }
+    }
+}
+pub fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<u32>){
     
     while stack.len() > 0 {
         let id:usize = stack.pop().unwrap() as usize;
