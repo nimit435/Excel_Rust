@@ -8,10 +8,11 @@ use crate::hash;
 use regex::Regex;
 
 pub fn parse_input(input: &str, sheet: &mut Sheet) -> Result<(), String> {
+    
     let (lhs, rhs) = input
         .split_once('=')
         .ok_or_else(|| "Missing '=' in the input".to_string())?;
-
+    
     is_valid_cell(lhs, sheet)?;
     validate_rhs(rhs, sheet)?;
     let (typ , opval, cell1, cell2, is_valid) = get_vals(rhs, sheet);
@@ -23,10 +24,13 @@ pub fn parse_input(input: &str, sheet: &mut Sheet) -> Result<(), String> {
         Celltype::Sleep => 3,
         _ => 2
     };
+    
     let n = sheet.cols*sheet.rows;
     let id: usize = hash::get_hash(lhs, sheet.cols) as usize;
     let mut vis: Vec<bool> = vec![false; n as usize];
     check_cycle(id as usize , &mut vis,  sheet, &cell1, &cell2, &mut flag, t, &mut stack);
+    
+   
     if !is_valid{
         sheet.matrix[id].is_valid = false;
     }
@@ -41,6 +45,7 @@ pub fn parse_input(input: &str, sheet: &mut Sheet) -> Result<(), String> {
 }
 
 fn assign_values(typ: Celltype, opval: Option<i32>, cell1: Option<i32>, cell2: Option<i32>, id: usize, sheet: &mut Sheet){
+    
     sheet.matrix[id].kind = typ;
     sheet.matrix[id].op_val = opval;
     sheet.matrix[id].cell1 = cell1;

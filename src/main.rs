@@ -1,6 +1,4 @@
 use Excel_Rust::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
-const max_length:u32 = 100;
-use std::env::args;
 use std::io;
 use std::time::Instant;
 use std::io::Write;
@@ -31,9 +29,10 @@ fn main() {
 
     loop{
         input.clear();
-        let mut suc = true;
+        let mut res: Result<(), String> = Ok(());
         io::stdin().read_line(&mut input).expect("Failed to read the input.");
         input = input.trim().to_string();
+        
         let strt = Instant::now();
         if input.to_lowercase() == "q"{
             break;
@@ -56,28 +55,27 @@ fn main() {
         else if input.to_lowercase() == "enable_output"{
             sheet.enable_display();
         }
-        else if input.len()>=10{
-            if input.to_lowercase().starts_with("scroll_to"){
-                let cell: Vec<&str> = input.split_whitespace().collect();
-                match is_valid_cell(&cell[1],&sheet){
-                    Ok(_)=>{sheet.scroll_to(&cell[1]);},
-                    _=>{suc = false;},
-                }
+        
+        else if input.to_lowercase().starts_with("scroll_to"){
+            let cell: Vec<&str> = input.split_whitespace().collect();
+            match is_valid_cell(&cell[1],&sheet){
+                Ok(_)=>{sheet.scroll_to(&cell[1]);},
+                Err(e)=>{res = Err(e);},
             }
         }
+        
         else{
             match parse_input(&input,&mut sheet){
                 Ok(_)=> (),
-                _=>{suc = false;},
+                Err(e)=>{res= Err(e);},
             }
         }
         let timed = strt.elapsed().as_secs_f64();
         display_sheet(&sheet);
-        if suc{
-            print!("[{}] (ok) > ",timed);
-        }
-        else{
-            print!("[{}] (error parsing input) > ",timed);
+        
+        match res{
+            Ok(_)=> {print!("[{}] (ok) > ",timed);},
+            Err(e)=> {print!("[{}] ({}) >",timed, e);}
         }
         io::stdout().flush().unwrap();
     }
