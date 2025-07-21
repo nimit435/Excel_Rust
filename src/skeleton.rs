@@ -31,7 +31,7 @@ pub struct Sheet{
 
 impl Cell{
     fn build_cell(id: u32) -> Cell {
-        let mut out:Vec<u32>= Vec::new(); 
+        let out:Vec<u32>= Vec::new(); 
         Cell { kind: Celltype::Constant, val: 0, id: id, is_valid: true, out_neighbors: out, op_val: None, cell1: None, cell2: None }
     }
     
