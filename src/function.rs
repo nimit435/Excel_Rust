@@ -387,7 +387,7 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
             }
             lu+=1;
         }
-        if last_unvisited[id] == curr.out_neighbors.len(){
+        if lu == curr.out_neighbors.len(){
             stack.push(st.pop().unwrap());
             continue;
         }
