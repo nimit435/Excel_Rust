@@ -1,8 +1,8 @@
-use Excel_Rust::{display::display_sheet, parsing, skeleton::Sheet};
+use Excel_Rust::{display::display_sheet, parsing::parse_input, skeleton::Sheet};
 const max_length:u32 = 100;
 use std::env::args;
-use cputime::ProcessTime;
 use std::io;
+use std::time::Instant;
 fn main() {
     let args:Vec<String> = std::env::args().collect();
     if args.len() !=2 && args.len()!=3{
@@ -20,18 +20,19 @@ fn main() {
     let rows:u32 = args[1].parse().unwrap_or_else(|_|panic!("Please enter a valid positive integer for rows."));
     let cols:u32 = args[2].parse().unwrap_or_else(|_|panic!("Please enter a valid positive integer for collumns."));
 
-    let clock_st = ProcessTime::now();
+    let clock_st = Instant::now();
     let mut sheet:Sheet = Sheet::create_sheet(rows, cols);
-    display_sheet(sheet);
+    display_sheet(&sheet);
     let el_t = clock_st.elapsed().as_secs_f64();
     println!("[{}] (ok) > ",el_t);
     let mut input = String::new();
 
     loop{
+        input.clear();
         let mut suc = true;
         io::stdin().read_line(&mut input).expect("Failed to read the input.");
-        input = input.trim();
-        let strt = ProcessTime::now();
+        input = input.trim().to_string();
+        let strt = Instant::now();
         if input.to_lowercase() == "q"{
             break;
         }
@@ -54,10 +55,10 @@ fn main() {
             sheet.enable_display();
         }
         else if input.len()>=10{
-            if input.to_lowercase()[..10] == "scroll_to"{
+            if input.to_lowercase()[..10] == *"scroll_to"{
                 let cell = String::from(&input[10..]);
                 if sheet.isvalidcell(cell){
-                    sheet.scroll_to(cell);
+                    sheet.scroll_to(&cell);
                 }
                 else{
                     suc = false;
@@ -65,10 +66,10 @@ fn main() {
             }
         }
         else{
-            parse_input(input,sheet).unwrap();
+            parse_input(&input,&mut sheet).unwrap();
         }
         let timed = strt.elapsed().as_secs_f64();
-        display_sheet(sheet);
+        display_sheet(&sheet);
         if suc{
             println!("[{}] (ok) > ",timed);
         }
