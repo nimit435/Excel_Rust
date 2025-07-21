@@ -144,7 +144,7 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
     }
 }
 
-fn is_valid_cell(input: &str, sheet: &Sheet) -> Result<(), String> {
+pub fn is_valid_cell(input: &str, sheet: &Sheet) -> Result<(), String> {
     let (letters, numbers) = hash::separate_cell(input)
         .map_err(|err| err.to_string())?;
     let rows = numbers.parse::<u32>().unwrap();

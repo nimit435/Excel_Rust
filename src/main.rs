@@ -1,8 +1,9 @@
-use Excel_Rust::{display::display_sheet, parsing::parse_input, skeleton::Sheet};
+use Excel_Rust::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
 const max_length:u32 = 100;
 use std::env::args;
 use std::io;
 use std::time::Instant;
+use std::io::Write;
 fn main() {
     let args:Vec<String> = std::env::args().collect();
     if args.len() !=2 && args.len()!=3{
@@ -24,7 +25,8 @@ fn main() {
     let mut sheet:Sheet = Sheet::create_sheet(rows, cols);
     display_sheet(&sheet);
     let el_t = clock_st.elapsed().as_secs_f64();
-    println!("[{}] (ok) > ",el_t);
+    print!("[{}] (ok) > ",el_t);
+    io::stdout().flush().unwrap();
     let mut input = String::new();
 
     loop{
@@ -55,26 +57,28 @@ fn main() {
             sheet.enable_display();
         }
         else if input.len()>=10{
-            if input.to_lowercase()[..10] == *"scroll_to"{
-                let cell = String::from(&input[10..]);
-                if sheet.isvalidcell(cell){
-                    sheet.scroll_to(&cell);
-                }
-                else{
-                    suc = false;
+            if input.to_lowercase().starts_with("scroll_to"){
+                let cell: Vec<&str> = input.split_whitespace().collect();
+                match is_valid_cell(&cell[1],&sheet){
+                    Ok(_)=>{sheet.scroll_to(&cell[1]);},
+                    _=>{suc = false;},
                 }
             }
         }
         else{
-            parse_input(&input,&mut sheet).unwrap();
+            match parse_input(&input,&mut sheet){
+                Ok(_)=> (),
+                _=>{suc = false;},
+            }
         }
         let timed = strt.elapsed().as_secs_f64();
         display_sheet(&sheet);
         if suc{
-            println!("[{}] (ok) > ",timed);
+            print!("[{}] (ok) > ",timed);
         }
         else{
-            println!("[{}] (error parsing input) > ",timed);
+            print!("[{}] (error parsing input) > ",timed);
         }
+        io::stdout().flush().unwrap();
     }
 }
