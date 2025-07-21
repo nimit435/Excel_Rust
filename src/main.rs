@@ -1,8 +1,9 @@
-use Excel_Rust::{display::display_sheet, parsing, skeleton::Sheet};
+use Excel_Rust::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
 const max_length:u32 = 100;
 use std::env::args;
-use cputime::ProcessTime;
 use std::io;
+use std::time::Instant;
+use std::io::Write;
 fn main() {
     let args:Vec<String> = std::env::args().collect();
     if args.len() !=2 && args.len()!=3{
@@ -20,18 +21,20 @@ fn main() {
     let rows:u32 = args[1].parse().unwrap_or_else(|_|panic!("Please enter a valid positive integer for rows."));
     let cols:u32 = args[2].parse().unwrap_or_else(|_|panic!("Please enter a valid positive integer for collumns."));
 
-    let clock_st = ProcessTime::now();
+    let clock_st = Instant::now();
     let mut sheet:Sheet = Sheet::create_sheet(rows, cols);
-    display_sheet(sheet);
+    display_sheet(&sheet);
     let el_t = clock_st.elapsed().as_secs_f64();
-    println!("[{}] (ok) > ",el_t);
+    print!("[{}] (ok) > ",el_t);
+    io::stdout().flush().unwrap();
     let mut input = String::new();
 
     loop{
+        input.clear();
         let mut suc = true;
         io::stdin().read_line(&mut input).expect("Failed to read the input.");
-        input = input.trim();
-        let strt = ProcessTime::now();
+        input = input.trim().to_string();
+        let strt = Instant::now();
         if input.to_lowercase() == "q"{
             break;
         }
@@ -54,26 +57,28 @@ fn main() {
             sheet.enable_display();
         }
         else if input.len()>=10{
-            if input.to_lowercase()[..10] == "scroll_to"{
-                let cell = String::from(&input[10..]);
-                if sheet.is_valid_cell(cell){
-                    sheet.scroll_to(cell);
-                }
-                else{
-                    suc = false;
+            if input.to_lowercase().starts_with("scroll_to"){
+                let cell: Vec<&str> = input.split_whitespace().collect();
+                match is_valid_cell(&cell[1],&sheet){
+                    Ok(_)=>{sheet.scroll_to(&cell[1]);},
+                    _=>{suc = false;},
                 }
             }
         }
         else{
-            parse_input(input,sheet).unwrap();
+            match parse_input(&input,&mut sheet){
+                Ok(_)=> (),
+                _=>{suc = false;},
+            }
         }
         let timed = strt.elapsed().as_secs_f64();
-        display_sheet(sheet);
+        display_sheet(&sheet);
         if suc{
-            println!("[{}] (ok) > ",timed);
+            print!("[{}] (ok) > ",timed);
         }
         else{
-            println!("[{}] (error parsing input) > ",timed);
+            print!("[{}] (error parsing input) > ",timed);
         }
+        io::stdout().flush().unwrap();
     }
 }

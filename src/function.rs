@@ -379,7 +379,7 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
         vis[id]=true;
         if *flag{
             return;
-        }                                                                                           
+        }                                                                                      
         let mut lu:usize = last_unvisited[id];
         while lu<curr.out_neighbors.len(){
             if !vis[curr.out_neighbors[lu] as usize] {

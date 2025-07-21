@@ -4,8 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-<<<<<<< HEAD
-=======
 regex = "1"
->>>>>>> nimit
-cputime = "0.2"
+libc = "0.2"
