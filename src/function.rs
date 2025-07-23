@@ -1,7 +1,8 @@
 use crate::skeleton::{Cell,Sheet,Celltype};
 use std::time::Duration;
 use std::thread;
-
+use std::collections::HashMap;
+use std::collections::HashSet;
 // Changes from the original check_cycle in the excel in C:
 // No need for linked list ; with two stacks one for dfs completion and one for dfs uncompleted we can maintain the toposort
 // and check the cycle.
@@ -334,16 +335,18 @@ fn sleep(id:usize,mat:&mut Sheet){
     }
 }
 
-pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i32>, flag:&mut bool, t :i32, stack:&mut Vec<u32>){
+pub fn check_cycle(id:usize ,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i32>, flag:&mut bool, t :i32, stack:&mut Vec<u32>){
     let mut st:Vec<u32> = Vec::new();
-    let mut last_unvisited:Vec<usize> = vec![0;(mat.cols as usize)*(mat.rows as usize) ];
+    // let mut last_unvisited:Vec<usize> = vec![0;(mat.cols as usize)*(mat.rows as usize) ];
+    let mut last_unvisited:HashMap<usize,usize> = HashMap::new();
+    let mut vis: HashSet<usize> = HashSet::new();
     st.push(id as u32);
     while st.len() > 0 {
 
         let id:usize = st[st.len()-1] as usize;
         let curr : &Cell = &mat.matrix[id];
 
-        if vis[id]==false{
+        if vis.contains(&id)==false{
             if t ==2 {
                 if (id / mat.cols as usize) >= (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id / mat.cols as usize) <= (cell2.unwrap_or(-1)as usize / mat.cols as usize) {
                     if (id % mat.cols as usize) >= (cell1.unwrap_or(-1)as usize % mat.cols as usize) && (id % mat.cols as usize) <= (cell2.unwrap_or(-1) as usize% mat.cols as usize){
@@ -376,13 +379,13 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
                 }
             }
         }
-        vis[id]=true;
+        vis.insert(id);
         if *flag{
             return;
         }                                                                                      
-        let mut lu:usize = last_unvisited[id];
+        let mut lu:usize = *last_unvisited.entry(id).or_insert(0);
         while lu<curr.out_neighbors.len(){
-            if !vis[curr.out_neighbors[lu] as usize] {
+            if vis.contains(&(curr.out_neighbors[lu] as usize))==false {
                 break;
             }
             lu+=1;
@@ -391,7 +394,7 @@ pub fn check_cycle(id:usize ,vis:&mut Vec<bool>,mat:&mut Sheet,cell1: &Option<i3
             stack.push(st.pop().unwrap());
             continue;
         }
-        last_unvisited[id] = lu;
+        last_unvisited.entry(id).and_modify(|v|*v = lu);
         st.push(curr.out_neighbors[lu]);
     }
 }

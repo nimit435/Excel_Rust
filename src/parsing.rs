@@ -24,11 +24,8 @@ pub fn parse_input(input: &str, sheet: &mut Sheet) -> Result<(), String> {
         Celltype::Sleep => 3,
         _ => 2
     };
-    
-    let n = sheet.cols*sheet.rows;
     let id: usize = hash::get_hash(lhs, sheet.cols) as usize;
-    let mut vis: Vec<bool> = vec![false; n as usize];
-    check_cycle(id as usize , &mut vis,  sheet, &cell1, &cell2, &mut flag, t, &mut stack);
+    check_cycle(id as usize ,  sheet, &cell1, &cell2, &mut flag, t, &mut stack);
     
    
     if !is_valid{
