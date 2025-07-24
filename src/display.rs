@@ -12,7 +12,7 @@ pub fn display_sheet(sheet: &Sheet){
         for j in colt..min(colt + 10, numcols) {
             print!("{:>12}", hash::col_mapping(j+1));
         }
-        println!("");
+        println!();
         for i in rowt..min(rowt+10, numrows){
             print!("{:>3}", i+1);
             for j in colt..min(colt+10, numcols){
@@ -24,7 +24,7 @@ pub fn display_sheet(sheet: &Sheet){
                     print!("         ERR");
                 }
             }
-            println!("");
+            println!();
         }
 
     }
