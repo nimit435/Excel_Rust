@@ -5,7 +5,8 @@ use std::io::Write;
 fn main() {
     let args:Vec<String> = std::env::args().collect();
     if args.len() !=2 && args.len()!=3{
-        eprintln!("To use sheet enter cargo run --rows collmns. If you want to know more about the product run cargo run --about");
+        println!("To use sheet enter cargo run --rows columns. If you want to know more about the product run cargo run --about");
+        return;
     }
     if args.len() == 2{
         if args[1].to_lowercase() == "about"{
@@ -13,7 +14,8 @@ fn main() {
             return;
         }
         else{
-            eprintln!("To use sheet enter cargo run --rows collmns. If you want to know more about the product run cargo run --about");
+            println!("To use sheet enter cargo run --rows columns. If you want to know more about the product run cargo run --about");
+            return;
         }
     }  
     let rows:u32 = args[1].parse().unwrap_or_else(|_|panic!("Please enter a valid positive integer for rows."));
