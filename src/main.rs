@@ -77,7 +77,7 @@ fn main() {
         
         match res{
             Ok(_)=> {print!("[{timed}] (ok) > ");},
-            Err(e)=> {print!("[{timed}] ({e}) >");}
+            Err(e)=> {print!("[{timed}] ({e}) > ");}
         }
         io::stdout().flush().unwrap();
     }
