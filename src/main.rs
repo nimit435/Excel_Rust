@@ -5,7 +5,8 @@ use std::io::Write;
 fn main() {
     let args:Vec<String> = std::env::args().collect();
     if args.len() !=2 && args.len()!=3{
-        eprintln!("To use sheet enter cargo run --rows collmns. If you want to know more about the product run cargo run --about");
+        println!("To use sheet enter cargo run --rows columns. If you want to know more about the product run cargo run --about");
+        return;
     }
     if args.len() == 2{
         if args[1].to_lowercase() == "about"{
@@ -13,7 +14,8 @@ fn main() {
             return;
         }
         else{
-            eprintln!("To use sheet enter cargo run --rows collmns. If you want to know more about the product run cargo run --about");
+            println!("To use sheet enter cargo run --rows columns. If you want to know more about the product run cargo run --about");
+            return;
         }
     }  
     let rows:u32 = args[1].parse().unwrap_or_else(|_|panic!("Please enter a valid positive integer for rows."));
@@ -23,7 +25,7 @@ fn main() {
     let mut sheet:Sheet = Sheet::create_sheet(rows, cols);
     display_sheet(&sheet);
     let el_t = clock_st.elapsed().as_secs_f64();
-    print!("[{}] (ok) > ",el_t);
+    print!("[{el_t}] (ok) > ");
     io::stdout().flush().unwrap();
     let mut input = String::new();
 
@@ -58,8 +60,8 @@ fn main() {
         
         else if input.to_lowercase().starts_with("scroll_to"){
             let cell: Vec<&str> = input.split_whitespace().collect();
-            match is_valid_cell(&cell[1],&sheet){
-                Ok(_)=>{sheet.scroll_to(&cell[1]);},
+            match is_valid_cell(cell[1],&sheet){
+                Ok(_)=>{sheet.scroll_to(cell[1]);},
                 Err(e)=>{res = Err(e);},
             }
         }
@@ -74,8 +76,8 @@ fn main() {
         display_sheet(&sheet);
         
         match res{
-            Ok(_)=> {print!("[{}] (ok) > ",timed);},
-            Err(e)=> {print!("[{}] ({}) >",timed, e);}
+            Ok(_)=> {print!("[{timed}] (ok) > ");},
+            Err(e)=> {print!("[{timed}] ({e}) > ");}
         }
         io::stdout().flush().unwrap();
     }

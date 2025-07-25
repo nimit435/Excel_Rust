@@ -1,4 +1,4 @@
-pub fn separate_cell(input: &str)->Result<(String, String), &'static str>{
+pub fn separate_cell(input: &str)->Result<(String, String), String>{
     let mut numbers = String::new();
     let mut letters = String::new();
     let mut seen_digit = false;
@@ -6,7 +6,7 @@ pub fn separate_cell(input: &str)->Result<(String, String), &'static str>{
     for ch in input.chars(){
         if ch.is_ascii_uppercase(){
             if seen_digit{
-                return Err(Box::leak(format!("{}: Digits cannot come before alphabets", input).into_boxed_str()));
+                return Err(format!("{input}: Digits cannot come before alphabets"));
             }
             letters.push(ch);
         }
@@ -15,11 +15,11 @@ pub fn separate_cell(input: &str)->Result<(String, String), &'static str>{
             numbers.push(ch);
         }
         else {
-            return Err(Box::leak(format!("{}: Only uppercase alphabets and numbers allowed", input).into_boxed_str()));
+            return Err(format!("{input}: Only uppercase alphabets and numbers allowed"));
         }
     }
     if letters.is_empty() || numbers.is_empty() {
-        return Err(Box::leak(format!("{}: Must contain both uppercase letters and digits", input).into_boxed_str()));
+        return Err(format!("{input}: Must contain both uppercase letters and digits"));
     }
 
     Ok((letters, numbers))
@@ -46,7 +46,7 @@ pub fn hash_to_string(id: u32, cols: u32) -> String {
     col += 1;
     let col_letters = col_mapping(col);
 
-    format!("{}{}", col_letters, row)
+    format!("{col_letters}{row}")
 }
 
 pub fn col_mapping(mut col: u32)->String{

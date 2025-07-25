@@ -33,7 +33,7 @@ pub struct Sheet{
 impl Cell{
     fn build_cell(id: u32) -> Cell {
         let out:Vec<u32>= Vec::new(); 
-        Cell { kind: Celltype::Constant, val: 0, id: id, is_valid: true, out_neighbors: out, op_val: None, cell1: None, cell2: None }
+        Cell { kind: Celltype::Constant, val: 0, id, is_valid: true, out_neighbors: out, op_val: None, cell1: None, cell2: None }
     }
     
 }
@@ -47,7 +47,7 @@ impl Sheet{
             cells.push(Cell::build_cell(id));
         }
 
-        Sheet { rows: rows, cols: cols, matrix: cells, is_display: true, row_top: 0, col_top: 0 }
+        Sheet { rows, cols, matrix: cells, is_display: true, row_top: 0, col_top: 0 }
          
     }
     pub fn scroll_up(&mut self){

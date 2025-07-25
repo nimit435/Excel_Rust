@@ -59,7 +59,7 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
     if temp == 0{
         let num = rhs.parse::<i32>().unwrap();
         opval = Some(num);
-        return (t, opval, cell1, cell2, is_valid);
+        (t, opval, cell1, cell2, is_valid)
     }
     else if temp == 1{
         if is_valid_cell(rhs, sheet).is_ok(){
@@ -123,12 +123,9 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
             "STDEV" => Celltype::Stdev,
             _ => Celltype::Constant,
         };
-        match range_name.split_once(':') {
-            Some((st, en)) => {
-                cell1 = Some(hash::get_hash(st, sheet.cols) as i32 );
-                cell2 = Some(hash::get_hash(en, sheet.cols) as i32 );
-            },
-            None => (),
+        if let Some((st,en))= range_name.split_once(':') {
+            cell1 = Some(hash::get_hash(st, sheet.cols) as i32 );
+            cell2 = Some(hash::get_hash(en, sheet.cols) as i32 );
         }
                     
         return (t, opval, cell1, cell2, is_valid);
@@ -153,10 +150,10 @@ pub fn is_valid_cell(input: &str, sheet: &Sheet) -> Result<(), String> {
     let rows = numbers.parse::<u32>().unwrap();
     let cols = hash::get_column(&letters);
     if rows > sheet.rows {
-        return Err(format!("{}: Row number cannot be greater than the number of rows.", input));
+        return Err(format!("{input}: Row number cannot be greater than the number of rows." ));
     }
     if cols > sheet.cols {
-        return Err(format!("{}: Column number cannot be greater than the number of columns.", input));
+        return Err(format!("{input}: Column number cannot be greater than the number of columns." ));
     }
     Ok(())
 }
@@ -168,18 +165,17 @@ fn validate_rhs(rhs: &str, sheet: &Sheet) -> Result<u32, String> {
     for ch in rhs.chars() {
         if ch == '(' {
             if en_cnt > st_cnt {
-                return Err(format!("{}: Invalid RHS.", rhs));
+                return Err(format!("{rhs}: Invalid RHS." ));
             }
             st_cnt += 1;
         } else if ch == ')' {
             en_cnt += 1;
         }
     }
-    if st_cnt != en_cnt {
-        return Err(format!("{}: Invalid RHS.", rhs));
-    } else if st_cnt > 1 {
-        return Err(format!("{}: Invalid RHS.", rhs));
-    } else if st_cnt == 0 {
+    if st_cnt != en_cnt || st_cnt > 1{
+        Err(format!("{rhs}: Invalid RHS."))
+    } 
+    else if st_cnt == 0 {
         if is_valid_number(rhs).is_ok() {
             return Ok(0);
         } 
@@ -195,30 +191,29 @@ fn validate_rhs(rhs: &str, sheet: &Sheet) -> Result<u32, String> {
             }
             return Ok(1);
         } else {
-            return Err(format!("{}: Invalid RHS.", rhs));
+            return Err(format!("{rhs}: Invalid RHS." ));
         }
     }
-    else {
-        if let Some((func_name, range_str)) = split_for_parenthesis(rhs) {
-            
-            is_valid_func(func_name)?;
-            if func_name == "SLEEP"{
-                if(is_valid_cell(range_str, sheet)).is_ok(){
-                    return Ok(3);
-                }
-                else if(is_valid_number(range_str)).is_ok(){
-                    return Ok(3);
-                }
-                else{
-                    return Err(format!("{}: Invalid RHS.", rhs));
-                }
+    
+    else if let Some((func_name, range_str)) = split_for_parenthesis(rhs) {
+        
+        is_valid_func(func_name)?;
+        if func_name == "SLEEP"{
+            if(is_valid_cell(range_str, sheet)).is_ok() || is_valid_number(range_str).is_ok(){
+                return Ok(3);
             }
-            is_valid_range(range_str, sheet)?;
-            return Ok(2);
-        } else {
-            return Err(format!("{}: Invalid RHS.", rhs));
+
+            else{
+                return Err(format!("{rhs}: Invalid RHS." ));
+            }
         }
+        is_valid_range(range_str, sheet)?;
+        Ok(2)
+    } 
+    else {
+        Err(format!("{rhs}: Invalid RHS." ))
     }
+    
 }
 
 fn is_valid_func(input: &str)->Result<(), String>{
@@ -227,7 +222,7 @@ fn is_valid_func(input: &str)->Result<(), String>{
     if valid_funcs.contains(&input.trim().to_uppercase().as_str()) {
         Ok(())
     } else {
-        Err(format!("{}: Not a valid function name.", input))
+        Err(format!("{input}: Not a valid function name."))
     }
 }
 
@@ -248,7 +243,7 @@ fn is_valid_range(input: &str, sheet: &Sheet) -> Result<(), String> {
     let col2 = hash::get_column(&letter2);
 
     if row1 > row2 || col1 > col2 {
-        return Err(format!("{}: Range is invalid", input));
+        return Err(format!("{input}: Range is invalid"));
     }
 
     Ok(())
@@ -262,7 +257,7 @@ fn is_valid_number(input: &str) -> Result<(), String> {
 
     match input.parse::<i32>() {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("{}: Not a valid integer.", input)),
+        Err(_) => Err(format!("{input}: Not a valid integer.")),
     }
 }
 

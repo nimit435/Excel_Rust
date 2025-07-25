@@ -8,7 +8,7 @@ use std::collections::HashSet;
 // and check the cycle.
 // Improvements:
 // Though still O(m+n) , no need for linked stack with added butter rust compilation.
-fn master(id:usize,mat:&mut Sheet)->i32{
+fn master(id:usize,mat:&mut Sheet){
     let max_col = mat.cols;
     let index_1 = mat.matrix[id].cell1.unwrap_or(-1);
     let index_2 = mat.matrix[id].cell2.unwrap_or(-1);
@@ -21,43 +21,41 @@ fn master(id:usize,mat:&mut Sheet)->i32{
     //     return 1;
     // }
     match mat.matrix[id].kind{
-    Celltype::Constant=>{
-        mat.matrix[id].val = mat.matrix[id].op_val.unwrap();
-        return 1;
-    },
-    Celltype::Arithmetic('+') =>{
-            if mat.matrix[id].cell1.unwrap_or(-1)==-1{
-                if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
+        Celltype::Constant=>{
+            mat.matrix[id].val = mat.matrix[id].op_val.unwrap();
+            
+        },
+        Celltype::Arithmetic('+') =>{
+                if mat.matrix[id].cell1.is_none(){
+                    if !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
+                        mat.matrix[id].is_valid=false;
+                    }
+                    else{
+                        mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val + mat.matrix[id].op_val.unwrap();
+                        mat.matrix[id].is_valid=true;
+                    }
+                }
+                else if mat.matrix[id].cell2.unwrap_or(-1)==-1{
+                    if !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid{
+                        mat.matrix[id].is_valid=false;
+                    }
+                    else{
+                        mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val + mat.matrix[id].op_val.unwrap();
+                        mat.matrix[id].is_valid=true;
+                    }
+                }
+                else if !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid|| !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
                     mat.matrix[id].is_valid=false;
                 }
-                else{
-                    mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val + mat.matrix[id].op_val.unwrap();
-                    mat.matrix[id].is_valid=true;
-                }
-            }
-            else if mat.matrix[id].cell2.unwrap_or(-1)==-1{
-                if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid == false{
-                    mat.matrix[id].is_valid=false;
-                }
-                else{
-                    mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val + mat.matrix[id].op_val.unwrap();
-                    mat.matrix[id].is_valid=true;
-                }
-            }
-            else{
-                if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid==false || (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
-                    mat.matrix[id].is_valid=false;
-                }
+                    
                 else{
                     mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val + (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val;
                     mat.matrix[id].is_valid=true;
                 }
-            }
-            return 1;
-        },
+            },
         Celltype::Arithmetic('-') =>{
             if mat.matrix[id].cell2.unwrap_or(-1)==-1{
-                if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid==false {
+                if !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid{
                     mat.matrix[id].is_valid=false;
                 }
                 else{
@@ -67,7 +65,7 @@ fn master(id:usize,mat:&mut Sheet)->i32{
                 
             }
             else if mat.matrix[id].cell1.unwrap_or(-1)==-1 {
-                if(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
+                if !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
                     mat.matrix[id].is_valid=false;
                 }
                 else{
@@ -75,20 +73,18 @@ fn master(id:usize,mat:&mut Sheet)->i32{
                     mat.matrix[id].is_valid=true;
                 }
             }
-            else{
-                if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid==false || (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false {
-                    mat.matrix[id].is_valid=false;
-                }
-                else{
-                    mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val - (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val;
-                    mat.matrix[id].is_valid=true;
-                }
+            else if !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid || !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid {
+                mat.matrix[id].is_valid=false;
             }
-            return 1;
+                
+            else{
+                mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val - (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val;
+                mat.matrix[id].is_valid=true;
+            }
         },
         Celltype::Arithmetic('*')=>{
             if mat.matrix[id].cell1.unwrap_or(-1)==-1{
-                if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
+                if !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
                     mat.matrix[id].is_valid=false;
                 }
                 else{
@@ -97,7 +93,7 @@ fn master(id:usize,mat:&mut Sheet)->i32{
                 }
             }
             else if mat.matrix[id].cell2.unwrap_or(-1)==-1 {
-                if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid==false{
+                if !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid{
                     mat.matrix[id].is_valid=false;
                 }
                 else{
@@ -105,109 +101,69 @@ fn master(id:usize,mat:&mut Sheet)->i32{
                     mat.matrix[id].is_valid=true;
                 }
             }
-            else{
-                if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid==false || (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
-                    mat.matrix[id].is_valid=false;
-                }
-                else{
-                    mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1)as usize]).val * (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val;
-                    mat.matrix[id].is_valid=true;
-                }
+            else if !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid || !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
+                mat.matrix[id].is_valid=false;
             }
-            return 1;
+                
+            else{
+                mat.matrix[id].val= (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1)as usize]).val * (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val;
+                mat.matrix[id].is_valid=true;
+            }
+            
         },
         Celltype::Arithmetic('/')=>{
             if mat.matrix[id].cell2.unwrap_or(-1)==-1 {
-                if mat.matrix[id].op_val.unwrap()==0{
+                if mat.matrix[id].op_val.unwrap()==0 || !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1)as usize]).is_valid{
                     mat.matrix[id].is_valid=false;
-                    return 1;
+                }  
+                else{
+                    mat.matrix[id].val= ((mat.matrix[mat.matrix[id].cell1.unwrap_or(-1)as usize]).val)/(mat.matrix[id].op_val.unwrap());
+                    mat.matrix[id].is_valid=true;
+                }
+            }
+            else if mat.matrix[id].cell1.is_none(){
+                if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val==0 || !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
+                    mat.matrix[id].is_valid=false;
                 }
                 else{
-                    if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1)as usize]).is_valid==false{
-                        mat.matrix[id].is_valid=false;
-                    }
-                    else{
-                        mat.matrix[id].val= ((mat.matrix[mat.matrix[id].cell1.unwrap_or(-1)as usize]).val)/(mat.matrix[id].op_val.unwrap());
-                        mat.matrix[id].is_valid=true;
-                    }
-                    
+                    mat.matrix[id].val= (mat.matrix[id].op_val.unwrap())/((mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val);
+                    mat.matrix[id].is_valid=true;
                 }
                 
-                
             }
-            else if mat.matrix[id].cell1.unwrap_or(-1)==-1{
-                if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val==0{
-                    mat.matrix[id].is_valid=false;
-                    return 1;
-                }
-                else{
-                    if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
-                        mat.matrix[id].is_valid=false;
-                    }
-                    else{
-                        mat.matrix[id].val= (mat.matrix[id].op_val.unwrap())/((mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val);
-                        mat.matrix[id].is_valid=true;
-                    }
-                }
-
-            }
+            else if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val==0 || !(mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid || !(mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid{
+                mat.matrix[id].is_valid=false;
+            }   
             else{
-                if (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val==0{
-                    mat.matrix[id].is_valid=false;
-                    return 1;
-                }
-                else{
-                    if (mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).is_valid==false || (mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).is_valid==false{
-                        mat.matrix[id].is_valid=false;
-                    }
-                    else{
-                        mat.matrix[id].val= ((mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val)/((mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val);
-                        mat.matrix[id].is_valid=true;
-                    }
-                }
-                
+                mat.matrix[id].val= ((mat.matrix[mat.matrix[id].cell1.unwrap_or(-1) as usize]).val)/((mat.matrix[mat.matrix[id].cell2.unwrap() as usize]).val);
+                mat.matrix[id].is_valid=true;
             }
-            return 1;
+            
         },
-    Celltype::Min=>{ // minimum(RANGE)
-        minimum( from_row,from_col,to_row,to_col,mat,id);
-        
-        return 1;
+        Celltype::Min=>{ // minimum(RANGE)
+            minimum( from_row,from_col,to_row,to_col,mat,id);
+        },
+        Celltype::Max=>{ // maximum(RANGE)
+            maximum( from_row,from_col,to_row,to_col,mat,id);
+        },
 
-    },
-    Celltype::Max=>{ // maximum(RANGE)
+        Celltype::Avg=> { // avg(RANGE)
+            avg( from_row,from_col,to_row,to_col,mat,id);
+        },
 
-        maximum( from_row,from_col,to_row,to_col,mat,id);
-        return 1;
+        Celltype::Sum=> { // sum(RANGE)
+            sum( from_row,from_col,to_row,to_col,mat, id);
+        },
 
-    },
+        Celltype::Stdev=> { // stdev(RANGE)
+            stdev( from_row,from_col,to_row,to_col,mat,id);
+        }
 
-    Celltype::Avg=> { // avg(RANGE)
-        avg( from_row,from_col,to_row,to_col,mat,id);
-        return 1;
-    },
+        Celltype::Sleep=>{ // sleep(RANGE)
+            sleep(id,mat);  
+        }
 
-    Celltype::Sum=> { // sum(RANGE)
-
-        sum( from_row,from_col,to_row,to_col,mat, id);
-
-        return 1;
-
-    },
-
-    Celltype::Stdev=> { // stdev(RANGE)
-        stdev( from_row,from_col,to_row,to_col,mat,id);
-        return 1;
-    }
-
-    Celltype::Sleep=>{ // sleep(RANGE)
-        sleep(id,mat);
-        return 1;     
-    }
-
-    _=>{
-        return 0;
-    }
+        _=>{}
     }
     
 }
@@ -217,7 +173,7 @@ fn maximum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mut mx = i32::MIN;
     for i in f_r..=t_r{
         for j in f_c..=t_c{
-            if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
+            if !mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid{
                 mat.matrix[id].is_valid = false;
                 return;
             }
@@ -226,15 +182,13 @@ fn maximum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     }
     mat.matrix[id].val = mx;
     mat.matrix[id].is_valid = true;
-    return;
-
 }
 
 fn minimum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mut mn:i32 = mat.matrix[id].val;
     for i in f_r..=t_r{
         for j in f_c..=t_c{
-            if mat.matrix[i as usize*mat.cols as usize+ j as usize].is_valid == false{
+            if !mat.matrix[i as usize*mat.cols as usize+ j as usize].is_valid{
                 mat.matrix[id].is_valid = false;
                 return;
             }
@@ -243,7 +197,7 @@ fn minimum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     }
     mat.matrix[id].val = mn;
     mat.matrix[id].is_valid = true;
-    return;
+
 
 }
 
@@ -253,7 +207,7 @@ fn avg(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mut sum = 0;
     for i in f_r..=t_r{
         for j in f_c..=t_c{
-            if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
+            if !mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid{
                 mat.matrix[id].is_valid = false;
                 return;
             }
@@ -264,7 +218,7 @@ fn avg(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let num_elements:i32 = ( t_r - f_r + 1 )*( t_c - f_c + 1 );
     mat.matrix[id].val = sum/num_elements;
     mat.matrix[id].is_valid = true;
-    return;
+
 
 }
 
@@ -273,7 +227,7 @@ fn sum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mut sum:i32 = 0;
     for i in f_r..=t_r{
         for j in f_c..=t_c{
-            if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
+            if !mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid{
                 mat.matrix[id].is_valid = false;
                 return;
             }
@@ -282,7 +236,6 @@ fn sum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     }
     mat.matrix[id].val = sum;
     mat.matrix[id].is_valid = true;
-    return;
 
 }
 
@@ -291,7 +244,7 @@ fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mut sum:i64 = 0;
     for i in f_r..=t_r{
         for j in f_c..=f_r{
-            if mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid == false{
+            if !mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid{
                 mat.matrix[id].is_valid = false;
                 return;
             }
@@ -306,10 +259,9 @@ fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
             var += (mat.matrix[i as usize*mat.cols as usize + j as usize].val as f64-mean)*(mat.matrix[i as usize*mat.cols as usize + j as usize].val as f64-mean);
         }
     }
-    var = var/num_elements;
+    var /= num_elements;
     mat.matrix[id].val = var.round() as i32;
     mat.matrix[id].is_valid = true;
-    return;
 
 }
 
@@ -320,10 +272,9 @@ fn sleep(id:usize,mat:&mut Sheet){
         thread::sleep(Duration::from_secs(sec as u64));
         mat.matrix[id].val = sec;
         mat.matrix[id].is_valid = true;
-        return;
     }
     else{
-        if mat.matrix[mat.matrix[id].cell1.unwrap_or(-1 )as usize].is_valid == false{
+        if !mat.matrix[mat.matrix[id].cell1.unwrap_or(-1 )as usize].is_valid{
             mat.matrix[id].is_valid = false;
             return;
         }
@@ -331,7 +282,6 @@ fn sleep(id:usize,mat:&mut Sheet){
         thread::sleep(Duration::from_secs(sec as u64));
         mat.matrix[id].val = sec;
         mat.matrix[id].is_valid = true;
-        return;
     }
 }
 
@@ -341,42 +291,36 @@ pub fn check_cycle(id:usize ,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i
     let mut last_unvisited:HashMap<usize,usize> = HashMap::new();
     let mut vis: HashSet<usize> = HashSet::new();
     st.push(id as u32);
-    while st.len() > 0 {
+    while !st.is_empty() {
 
         let id:usize = st[st.len()-1] as usize;
         let curr : &Cell = &mat.matrix[id];
 
-        if vis.contains(&id)==false{
-            if t ==2 {
-                if (id / mat.cols as usize) >= (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id / mat.cols as usize) <= (cell2.unwrap_or(-1)as usize / mat.cols as usize) {
-                    if (id % mat.cols as usize) >= (cell1.unwrap_or(-1)as usize % mat.cols as usize) && (id % mat.cols as usize) <= (cell2.unwrap_or(-1) as usize% mat.cols as usize){
-                        *flag = true;
-                        
-                    }
-                }
-            } else if t == 1 {
-                if cell2.unwrap_or(-1) != -1&& cell1.unwrap_or(-1) != -1{
+        if !vis.contains(&id){
+            if t ==2 && (id / mat.cols as usize) >= (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id / mat.cols as usize) <= (cell2.unwrap_or(-1)as usize / mat.cols as usize) && (id % mat.cols as usize) >= (cell1.unwrap_or(-1)as usize % mat.cols as usize) && (id % mat.cols as usize) <= (cell2.unwrap_or(-1) as usize% mat.cols as usize){
+                *flag = true;
+            } 
+            else if t == 1 {
+                if cell2.is_some() && cell1.is_some(){
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1)  as usize% mat.cols as usize) {
                         *flag = true;
                     }
                     if (id / mat.cols as usize) == (cell2.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell2.unwrap_or(-1)as usize % mat.cols as usize) {
                         *flag = true;
                     }
-                } else if cell1.unwrap_or(-1) != -1 {
+                } 
+                else if cell1.unwrap_or(-1) != -1 {
                     if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize% mat.cols as usize) {
                         *flag = true;
                     }
-                } else {
-                    if (id / mat.cols as usize) == (cell2.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell2.unwrap_or(-1)as usize % mat.cols as usize) {
-                        *flag = true;
-                    }
+                } 
+                else if (id / mat.cols as usize) == (cell2.unwrap_or(-1) as usize/ mat.cols as usize) && (id % mat.cols as usize) == (cell2.unwrap_or(-1)as usize % mat.cols as usize) {
+                    *flag = true;
                 }
-            } else if t == 3 {
-                if cell1.unwrap_or(-1) != -1{
-                    if (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize % mat.cols as usize) {
-                        *flag = true;
-                    }
-                }
+                
+            } 
+            else if t == 3 && cell1.is_some() && (id / mat.cols as usize) == (cell1.unwrap_or(-1) as usize / mat.cols as usize) && (id % mat.cols as usize) == (cell1.unwrap_or(-1) as usize % mat.cols as usize){
+                *flag = true;               
             }
         }
         vis.insert(id);
@@ -385,7 +329,7 @@ pub fn check_cycle(id:usize ,mat:&mut Sheet,cell1: &Option<i32>,cell2: &Option<i
         }                                                                                      
         let mut lu:usize = *last_unvisited.entry(id).or_insert(0);
         while lu<curr.out_neighbors.len(){
-            if vis.contains(&(curr.out_neighbors[lu] as usize))==false {
+            if !vis.contains(&(curr.out_neighbors[lu] as usize)) {
                 break;
             }
             lu+=1;
@@ -482,7 +426,7 @@ pub fn add_edge(sheet: &mut Sheet, id: usize){
 }
 pub fn recalculate_node(mat:&mut Sheet , stack:&mut Vec<u32>){
     
-    while stack.len() > 0 {
+    while !stack.is_empty() {
         let id:usize = stack.pop().unwrap() as usize;
         master(id,mat); 
     }
