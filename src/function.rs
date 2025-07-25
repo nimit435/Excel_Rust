@@ -22,8 +22,14 @@ fn master(id:usize,mat:&mut Sheet){
     // }
     match mat.matrix[id].kind{
         Celltype::Constant=>{
-            mat.matrix[id].val = mat.matrix[id].op_val.unwrap();
-            
+            if mat.matrix[id].op_val.is_some() {
+                mat.matrix[id].val = mat.matrix[id].op_val.unwrap();
+                mat.matrix[id].is_valid=true;
+
+            }
+            else{
+                mat.matrix[id].is_valid=false;
+            }
         },
         Celltype::Arithmetic('+') =>{
                 if mat.matrix[id].cell1.is_none(){
@@ -185,7 +191,13 @@ fn maximum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
 }
 
 fn minimum(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
-    let mut mn:i32 = i32::MIN;
+    
+    if !mat.matrix[f_r as usize*mat.cols as usize+ f_c as usize].is_valid{
+        mat.matrix[id].is_valid = false;
+        return;
+    }
+    let mut mn = mat.matrix[f_r as usize*mat.cols as usize+ f_c as usize].val;
+
     for i in f_r..=t_r{
         for j in f_c..=t_c{
             if !mat.matrix[i as usize*mat.cols as usize+ j as usize].is_valid{

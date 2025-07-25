@@ -2,3 +2,4 @@
 *.lock
 /.cph
 .DS_Store
+*.zip

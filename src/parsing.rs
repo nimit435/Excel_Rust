@@ -77,7 +77,7 @@ fn get_vals(rhs: &str, sheet: &Sheet)->(Celltype, Option<i32>, Option<i32>, Opti
                     '+' => Some(num1 + num2),
                     '-' => Some(num1 - num2),
                     '*' => Some(num1 * num2),
-                    '/' => Some(1),
+                    '/' => None,
                     _ => None,
                 };
                 if op_char == '/'{

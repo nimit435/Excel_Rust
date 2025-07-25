@@ -1,4 +1,4 @@
-use sheet::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
+use spreadsheet::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
 use std::io;
 use std::time::Instant;
 use std::io::Write;
@@ -43,10 +43,10 @@ fn main() {
             sheet.scroll_up();
         }
         else if input.to_lowercase() == "a"{
-            sheet.scroll_down();
+            sheet.scroll_left();
         }
         else if input.to_lowercase() == "s"{
-            sheet.scroll_left();
+            sheet.scroll_down();
         }
         else if input.to_lowercase() == "d"{
             sheet.scroll_right();
