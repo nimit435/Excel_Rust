@@ -1,4 +1,4 @@
-use Excel_Rust::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
+use sheet::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
 use std::io;
 use std::time::Instant;
 use std::io::Write;
@@ -29,7 +29,7 @@ fn main() {
     // let clock_st = Instant::now();
     // let mut sheet:Sheet = Sheet::create_sheet(rows, cols);
     // display_sheet(&sheet);
-    // let el_t = clock_st.elapsed().as_secs_f64();
+    // let el_t = format!("{:.1}", clock_st.elapsed().as_secs_f64());
     // print!("[{el_t}] (ok) > ");
     // io::stdout().flush().unwrap();
     // let mut input = String::new();
@@ -71,14 +71,14 @@ fn main() {
     //         }
     //     }
         
-    //     else{
-    //         match parse_input(&input,&mut sheet){
-    //             Ok(_)=> (),
-    //             Err(e)=>{res= Err(e);},
-    //         }
-    //     }
-    //     let timed = strt.elapsed().as_secs_f64();
-    //     display_sheet(&sheet);
+        else{
+            match parse_input(&input,&mut sheet){
+                Ok(_)=> (),
+                Err(e)=>{res= Err(e);},
+            }
+        }
+        let timed = format!("{:.1}", strt.elapsed().as_secs_f64());
+        display_sheet(&sheet);
         
     //     match res{
     //         Ok(_)=> {print!("[{timed}] (ok) > ");},
