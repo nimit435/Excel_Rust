@@ -1,4 +1,4 @@
-use Excel_Rust::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
+use sheet::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
 use std::io;
 use std::time::Instant;
 use std::io::Write;
