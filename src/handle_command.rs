@@ -1,7 +1,6 @@
 use Excel_Rust::{display::display_sheet, parsing::{parse_input, is_valid_cell}, skeleton::Sheet};
 use std::cell::RefCell;
 use std::fmt::Write;
-// use std::time::Instant;
 thread_local!{
     static SHEET:RefCell<Option<Sheet>> = RefCell::new(None);
 }
@@ -64,18 +63,27 @@ pub fn handle_command(input:&str)->String{
             sheet.enable_display();}
         }
         
-        else if input.to_lowercase().starts_with("scroll_to"){
-            {let cell: Vec<&str> = input.split_whitespace().collect();
-            let sh_ref = s.borrow();
-            let sheet = sh_ref.as_ref().expect("Sheet not initialised");
-            match is_valid_cell(cell[1],sheet){
-                Ok(_)=>{
-                    drop(sh_ref); 
-                    let mut sh_ref = s.borrow_mut();
-                    let sheet = sh_ref.as_mut().expect("Sheet not initialised");
-                    sheet.scroll_to(cell[1]);},
-                Err(e)=>{res = Err(e);},
-            }}
+        else if input.to_lowercase().starts_with("scroll_to") {
+            let cell: Vec<&str> = input.split_whitespace().collect();
+
+            let is_valid = SHEET.with(|s| {
+                let sh_ref = s.borrow();
+                let sheet = sh_ref.as_ref().expect("Sheet not initialised");
+                is_valid_cell(cell[1], sheet)
+            });
+
+            match is_valid {
+                Ok(_) => {
+                    SHEET.with(|s| {
+                        let mut sh_ref = s.borrow_mut();
+                        let sheet = sh_ref.as_mut().expect("Sheet not initialised");
+                        sheet.scroll_to(cell[1]);
+                    });
+                },
+                Err(e) => {
+                    res = Err(e);
+                }
+            }
         }
         
         else{
