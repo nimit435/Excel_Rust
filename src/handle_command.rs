@@ -1,4 +1,6 @@
-use Excel_Rust::{display::display_sheet, parsing::{parse_input, is_valid_cell}, skeleton::Sheet};
+use crate::display::display_sheet;
+use crate::parsing::{parse_input, is_valid_cell};
+use crate::skeleton::Sheet;
 use std::cell::RefCell;
 use std::fmt::Write;
 thread_local!{

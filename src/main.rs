@@ -4,8 +4,13 @@ use std::time::Instant;
 use std::io::Write;
 use yew::prelude::*;
 use yew::Renderer;
-pub mod app;
-pub mod handle_command;
+mod display;
+mod parsing;
+mod skeleton;
+mod function;
+mod hash;
+mod handle_command;
+mod app;
 use app::App;
 fn main() {
     // let args:Vec<String> = std::env::args().collect();
@@ -71,14 +76,14 @@ fn main() {
     //         }
     //     }
         
-        else{
-            match parse_input(&input,&mut sheet){
-                Ok(_)=> (),
-                Err(e)=>{res= Err(e);},
-            }
-        }
-        let timed = format!("{:.1}", strt.elapsed().as_secs_f64());
-        display_sheet(&sheet);
+        // else{
+        //     match parse_input(&input,&mut sheet){
+        //         Ok(_)=> (),
+        //         Err(e)=>{res= Err(e);},
+        //     }
+        // }
+        // let timed = format!("{:.1}", strt.elapsed().as_secs_f64());
+        // display_sheet(&sheet);
         
     //     match res{
     //         Ok(_)=> {print!("[{timed}] (ok) > ");},

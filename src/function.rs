@@ -1,3 +1,5 @@
+use web_sys::js_sys::Math::sqrt;
+
 use crate::skeleton::{Cell,Sheet,Celltype};
 use std::time::Duration;
 use std::thread;
@@ -243,7 +245,7 @@ fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     
     let mut sum:i64 = 0;
     for i in f_r..=t_r{
-        for j in f_c..=f_r{
+        for j in f_c..=t_c{
             if !mat.matrix[i as usize*mat.cols as usize + j as usize].is_valid{
                 mat.matrix[id].is_valid = false;
                 return;
@@ -255,11 +257,12 @@ fn stdev(f_r:i32,f_c:i32,t_r:i32,t_c:i32,mat:&mut Sheet,id:usize){
     let mean = (sum as f64)/num_elements;
     let mut var:f64 = 0.0;
     for i in f_r..=t_r{
-        for j in f_c..=f_r{
+        for j in f_c..=t_c{
             var += (mat.matrix[i as usize*mat.cols as usize + j as usize].val as f64-mean)*(mat.matrix[i as usize*mat.cols as usize + j as usize].val as f64-mean);
         }
     }
     var /= num_elements;
+    var = sqrt(var);
     mat.matrix[id].val = var.round() as i32;
     mat.matrix[id].is_valid = true;
 
