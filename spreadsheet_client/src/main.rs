@@ -4,29 +4,33 @@ use spreadsheet_core::{ClientMsg, ServerMsg, Sheet}; // Our shared types!
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use futures::{StreamExt, SinkExt};
-use gloo_net::Error as GlooError;  // For the error type
-use web_sys::{HtmlInputElement, InputEvent, SubmitEvent}; // For browser events
+use gloo_net::Error as GlooError;
+use web_sys::{HtmlInputElement, InputEvent, SubmitEvent, FocusEvent, KeyboardEvent}; // --- CHANGED --- (Added FocusEvent)
 use futures::stream::SplitSink;
 
 // --- Define the state of our component ---
 struct App {
     sheet: Option<Sheet>,
     ws: Option<SplitSink<WebSocket, Message>>,
-    user_input: String,
-    error_message: Option<String>, // <-- ADD THIS
-    selected_cell: Option<String>,
+    bar_input: String,      // --- RENAMED --- (Was user_input, now for top bar)
+    edit_input: String,     // --- NEW --- (For in-cell editing)
+    error_message: Option<String>,
+    editing_cell: Option<String>, // --- RENAMED --- (Was selected_cell)
+    input_ref: NodeRef,     // --- NEW --- (To auto-focus the in-cell input)
 }
 
 // --- Define messages for component updates ---
 enum Msg {
     Connected(WebSocket),
-    FromServer(ServerMsg), // <-- RENAMED (from ServerUpdate)
-    InputChanged(String),
-    SubmitInput,
+    FromServer(ServerMsg),
+    BarInputChanged(String), // --- RENAMED --- (Was InputChanged)
+    SubmitBarInput,        // --- RENAMED --- (Was SubmitInput)
+    EditInputChanged(String),// --- NEW --- (For in-cell input)
+    SubmitCellEdit,        // --- NEW --- (To submit from cell)
+    SelectCell(String),      // --- CHANGED --- (Now just selects for editing)
     ConnectionFailed(GlooError),
     ConnectionLost,
     ConnectionRestored(SplitSink<WebSocket, Message>),
-    SelectCell(String),
 }
 
 impl Component for App {
@@ -51,87 +55,86 @@ impl Component for App {
         Self {
             sheet: None,
             ws: None,
-            user_input: String::new(),
-            error_message: None, // <-- ADD THIS
-            selected_cell: None,
+            bar_input: String::new(),      // --- RENAMED ---
+            edit_input: String::new(),     // --- NEW ---
+            error_message: None,
+            editing_cell: None,            // --- RENAMED ---
+            input_ref: NodeRef::default(), // --- NEW ---
         }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            // --- 2. Connection is open, start listening ---
+            // --- 2. User clicks a cell to edit it ---
             Msg::SelectCell(cell_id) => {
-                if self.selected_cell.as_ref() == Some(&cell_id) {
-                    // This cell is already selected, so deselect it
-                    self.selected_cell = None;
-                } else {
-                    // This is a new cell, so select it
-                    self.selected_cell = Some(cell_id.clone());
-                    self.user_input.clear(); 
+                // If we are already editing a cell, submit it first
+                if self.editing_cell.is_some() {
+                     ctx.link().send_message(Msg::SubmitCellEdit);
                 }
-                true // Re-render to show border change
+                
+                // Set the new cell as editing
+                self.editing_cell = Some(cell_id.clone());
+                
+                // We clear the edit_input. User wants to type a new command.
+                // A better way would be to fetch the cell's *formula*,
+                // but we only have its *value*. Starting blank is clearer.
+                self.edit_input.clear(); 
+                true // Re-render to show the input box
             }
+            
+            // --- 3. Connection is open, start listening ---
             Msg::Connected(ws) => {
                 let (write, mut read) = ws.split();
-                self.ws = Some(write); // Store the "write" half to send messages
+                self.ws = Some(write);
                 
-                // Spawn a task to listen for incoming messages
                 let link = ctx.link().clone();
                 spawn_local(async move {
                     while let Some(msg) = read.next().await {
                         match msg {
                             Ok(Message::Text(data)) => {
-                                // We got JSON from the server, parse it
                                 if let Ok(server_msg) = serde_json::from_str::<ServerMsg>(&data) {
-                                    link.send_message(Msg::FromServer(server_msg)); // <-- NEW
+                                    link.send_message(Msg::FromServer(server_msg));
                                 }
                             }
                             _ => {}
                         }
                     }
-                    // Loop exited, connection is lost
                     link.send_message(Msg::ConnectionLost);
                 });
-                true // Re-render
+                true 
             }
             
-            // --- 3. Got a new sheet state from server ---
+            // --- 4. Got a new sheet state from server ---
             Msg::FromServer(server_msg) => {
                 match server_msg {
                     ServerMsg::SheetUpdate(sheet) => {
                         self.sheet = Some(sheet);
-                        self.error_message = None; // Clear any previous error
+                        self.error_message = None;
                     }
                     ServerMsg::Error(e) => {
                         self.error_message = Some(e);
                     }
                 }
-                true // Re-render to show sheet update OR error
+                true
             }
 
-            // --- 4. User is typing ---
-            Msg::InputChanged(input) => {
-                self.user_input = input;
-                false // No need to re-render
+            // --- 5. User is typing in the *top bar* ---
+            Msg::BarInputChanged(input) => {
+                self.bar_input = input;
+                false
             }
             
-            // --- 5. User submitted a command ---
-            Msg::SubmitInput => {
+            // --- 6. User submitted from the *top bar* ---
+            Msg::SubmitBarInput => {
                 self.error_message = None;
                 if let Some(mut ws) = self.ws.take() {
-                    
-                    // 1. Determine the final command to send
-                    let final_command = if let Some(cell_id) = &self.selected_cell {
-                        // If a cell is selected, prefix the input!
-                        // User types "10", we send "A1=10"
-                        format!("{}={}", cell_id, self.user_input)
-                    } else {
-                        // No cell selected, treat as raw command (e.g., "s", "w", "A1=50")
-                        self.user_input.clone()
-                    };
+                    // --- CHANGED ---
+                    // The top bar now *only* sends raw commands.
+                    // The prefix logic is gone.
+                    let final_command = self.bar_input.clone();
 
                     let msg = ClientMsg {
-                        input: final_command, // Send the computed command
+                        input: final_command,
                     };
                     let json = serde_json::to_string(&msg).unwrap();
                     
@@ -144,11 +147,46 @@ impl Component for App {
                         }
                     });
                 }
-                self.user_input.clear();
-                // We don't clear selected_cell so you can keep editing the same cell if you fail
+                self.bar_input.clear();
                 true
             }
             
+            // --- 7. User is typing in a *cell* ---
+            Msg::EditInputChanged(input) => {
+                self.edit_input = input;
+                false // The <input> handles its own state
+            }
+
+            // --- 8. User submitted from a *cell* (on blur/focus loss) ---
+            Msg::SubmitCellEdit => {
+                if let Some(cell_id) = self.editing_cell.take() {
+                    if let Some(mut ws) = self.ws.take() {
+                        // --- NEW LOGIC ---
+                        // Prefix the in-cell input with its cell_id
+                        let final_command = format!("{}={}", cell_id, self.edit_input);
+
+                        let msg = ClientMsg {
+                            input: final_command,
+                        };
+                        let json = serde_json::to_string(&msg).unwrap();
+                        
+                        let link = ctx.link().clone();
+                        spawn_local(async move {
+                            if ws.send(Message::Text(json)).await.is_err() {
+                                link.send_message(Msg::ConnectionLost);
+                            } else {
+                                link.send_message(Msg::ConnectionRestored(ws));
+                            }
+                        });
+                    }
+                    self.edit_input.clear();
+                    true // Re-render to turn the cell back into text
+                } else {
+                    false // Nothing was being edited
+                }
+            }
+
+            // --- Connection Management ---
             Msg::ConnectionFailed(e) => {
                 log::error!("WS Error: {:?}", e);
                 false
@@ -159,61 +197,97 @@ impl Component for App {
                 false
             }
             Msg::ConnectionRestored(ws) => {
-                self.ws = Some(ws); // Put the writer back into the state
-                false // No re-render needed
+                self.ws = Some(ws);
+                false
             }
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        // --- NEW ---
+        // A simple "click-off" handler.
+        // If you click the background, it submits the cell.
+        let on_bg_click = ctx.link().callback(|e: MouseEvent| {
+            // Only fire if the click is on the background div itself,
+            // not a child element (like the table or input).
+            if e.target() == e.current_target() {
+                Msg::SubmitCellEdit
+            } else {
+                // This is a hack to create a "No-Op" message
+                Msg::BarInputChanged("".to_string()) 
+            }
+        });
+
         html! {
-            <div>
+            <div onclick={on_bg_click} style="min-height: 100vh;">
                 <h1>{ "Real-Time Rust Spreadsheet" }</h1>
                 { self.view_input(ctx) }
-                { self.view_error() } // <-- ADD THIS
+                { self.view_error() }
                 { self.view_grid(ctx) }
             </div>
+        }
+    }
+
+    // --- NEW ---
+    // Auto-focus the in-cell <input> after it's rendered
+    fn rendered(&mut self, _ctx: &Context<Self>, first_render: bool) {
+        if !first_render {
+            if let Some(input) = self.input_ref.cast::<HtmlInputElement>() {
+                input.focus().ok();
+            }
         }
     }
 }
 
 // Helper view functions to keep `view` clean
 impl App {
-    // Renders the input box and submit button
+    // --- CHANGED ---
+    // Renders the *top* input bar
+    // Renders the *top* input bar
     fn view_input(&self, ctx: &Context<Self>) -> Html {
-        // ... existing callback logic ...
         let link = ctx.link();
+        
         let oninput = link.callback(move |e: InputEvent| {
             let input: HtmlInputElement = e.target_unchecked_into();
-            Msg::InputChanged(input.value())
-        });
-        let onsubmit = link.callback(move |e: SubmitEvent| {
-            e.prevent_default();
-            Msg::SubmitInput
+            Msg::BarInputChanged(input.value())
         });
 
-        // Dynamic placeholder text
-        let placeholder = if let Some(id) = &self.selected_cell {
-            format!("Enter formula for {} (e.g., 10 or A1+B2)", id)
-        } else {
-            "Select a cell or type a command (e.g., 's' to scroll)".to_string()
-        };
+        // --- NEW: Add onkeydown handler for the top bar ---
+        let onkeydown = link.batch_callback(|e: KeyboardEvent| {
+            if e.key() == "Enter" {
+                e.prevent_default(); // Stop enter from doing anything else
+                Some(Msg::SubmitBarInput)
+            } else {
+                None
+            }
+        });
+
+        // --- NEW: onclick for the button ---
+        let onclick = link.callback(|_| Msg::SubmitBarInput);
+        
+        // Placeholder is now static, as this bar is only for raw commands
+        let placeholder = "Type a raw command (e.g., 's' to scroll or 'A1=50')".to_string();
         
         html! {
-            <form onsubmit={onsubmit}>
+            // --- We removed the <form> tag ---
+            <div>
                 <input
                     type="text"
-                    placeholder={placeholder} // <-- Use dynamic placeholder
-                    value={self.user_input.clone()}
-                    oninput={oninput}
+                    {placeholder}
+                    value={self.bar_input.clone()}
+                    {oninput}
+                    {onkeydown} // <-- ATTACH onkeydown
                     style="width: 300px; padding: 5px;"
                 />
-                <button type="submit" style="padding: 5px;">{ "Update" }</button>
-            </form>
+                // --- Button now uses onclick ---
+                <button {onclick} style="padding: 5px;">{ "Send Command" }</button>
+            </div>
         }
     }
 
-    // Renders the spreadsheet grid as an HTML table
+    // --- CHANGED ---
+    // Renders the spreadsheet grid
+    // Now renders an <input> for the cell being edited
     fn view_grid(&self, ctx: &Context<Self>) -> Html {
         if let Some(sheet) = &self.sheet {
             let rowt = sheet.row_top;
@@ -242,18 +316,13 @@ impl App {
                                     <td style={cell_style(true, false)}>{ i + 1 }</td>
                                     {
                                         (colt..std::cmp::min(colt + 10, numcols)).map(|j| {
-                                            // 1. Calculate Cell ID (e.g., "A1")
                                             let col_char = (b'A' + j as u8) as char;
                                             let cell_id = format!("{}{}", col_char, i + 1);
                                             
-                                            // 2. Check if this specific cell is selected
-                                            let is_selected = self.selected_cell.as_ref() == Some(&cell_id);
-
-                                            // 3. Create Click Handler
-                                            let id_for_click = cell_id.clone();
-                                            let onclick = ctx.link().callback(move |_| Msg::SelectCell(id_for_click.clone()));
-
-                                            // 4. Get value
+                                            // --- CHANGED ---
+                                            // Check if this cell is being edited
+                                            let is_editing = self.editing_cell.as_ref() == Some(&cell_id);
+                                            
                                             let cell = &sheet.matrix[(i * numcols + j) as usize];
                                             let display = if cell.is_valid {
                                                 cell.val.to_string()
@@ -261,14 +330,50 @@ impl App {
                                                 "ERR".to_string()
                                             };
 
-                                            // 5. Render with click handler and conditional style
-                                            html! { 
-                                                <td 
-                                                    onclick={onclick} 
-                                                    style={cell_style(false, is_selected)}
-                                                >
-                                                    { display }
-                                                </td> 
+                                            if is_editing {
+                                                // This cell is being edited: render an <input>
+                                                let oninput = ctx.link().callback(|e: InputEvent| {
+                                                    let input: HtmlInputElement = e.target_unchecked_into();
+                                                    Msg::EditInputChanged(input.value())
+                                                });
+                                                let onblur = ctx.link().callback(|_: FocusEvent| {
+                                                    Msg::SubmitCellEdit
+                                                });
+
+                                                // --- NEW: Add onkeydown handler ---
+                                                let onkeydown = ctx.link().batch_callback(|e: KeyboardEvent| {
+                                                    if e.key() == "Enter" {
+                                                        e.prevent_default(); // Stop enter from adding a newline
+                                                        Some(Msg::SubmitCellEdit)
+                                                    } else {
+                                                        None // Do nothing on other keys
+                                                    }
+                                                });
+
+                                                html! {
+                                                    <td style={cell_style(false, true)}>
+                                                        <input
+                                                            type="text"
+                                                            value={self.edit_input.clone()}
+                                                            {oninput}
+                                                            {onblur}
+                                                            {onkeydown} // <-- ATTACH HANDLER
+                                                            ref={self.input_ref.clone()} // For auto-focus
+                                                            style="width: 100%; border: none; padding: 0; margin: 0; text-align: center;"
+                                                        />
+                                                    </td>
+                                                }
+                                            }
+                                            else {
+                                                // --- CHANGED ---
+                                                // This cell is static text: render text
+                                                let id_for_click = cell_id.clone();
+                                                let onclick = ctx.link().callback(move |_| Msg::SelectCell(id_for_click.clone()));
+                                                html! { 
+                                                    <td {onclick} style={cell_style(false, false)}>
+                                                        { display }
+                                                    </td> 
+                                                }
                                             }
                                         }).collect::<Html>()
                                     }
@@ -283,6 +388,8 @@ impl App {
             html! { <p>{ "Connecting to server..." }</p> }
         }
     }
+    
+    // Renders the error message (no change)
     fn view_error(&self) -> Html {
         if let Some(error) = &self.error_message {
             html! {
@@ -297,25 +404,27 @@ impl App {
 }
 
 // Helper for cell styling
-// Updated helper: takes `is_selected` boolean
+// `is_selected` now means "is being edited"
 fn cell_style(is_header: bool, is_selected: bool) -> String {
     let mut style = String::from("padding: 4px; min-width: 60px; text-align: center;");
     
     if is_header {
         style.push_str("background-color: #f4f4f4; font-weight: bold; border: 1px solid #ccc;");
     } else {
-        style.push_str("background-color: #fff; cursor: pointer;");
+        style.push_str("background-color: #fff;");
         if is_selected {
-            // Highlight selected cells!
-            style.push_str("border: 2px solid #2196F3;"); 
+            // --- CHANGED ---
+            // Style for the <td> *containing* the input
+            style.push_str("border: 2px solid #2196F3; padding: 0;"); 
         } else {
-            style.push_str("border: 1px solid #ccc;");
+            // Style for a normal, clickable cell
+            style.push_str("border: 1px solid #ccc; cursor: pointer;");
         }
     }
     style
 }
 
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default()); // <-- ADD THIS
+    wasm_logger::init(wasm_logger::Config::default());
     yew::Renderer::<App>::new().render();
 }
