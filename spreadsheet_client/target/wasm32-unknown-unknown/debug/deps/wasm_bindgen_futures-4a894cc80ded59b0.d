@@ -1,0 +1,9 @@
+/Users/nimitjain/Desktop/Projects/excel_rust/spreadsheet_client/target/wasm32-unknown-unknown/debug/deps/wasm_bindgen_futures-4a894cc80ded59b0.d: /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/lib.rs /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/queue.rs /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/task/singlethread.rs
+
+/Users/nimitjain/Desktop/Projects/excel_rust/spreadsheet_client/target/wasm32-unknown-unknown/debug/deps/libwasm_bindgen_futures-4a894cc80ded59b0.rlib: /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/lib.rs /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/queue.rs /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/task/singlethread.rs
+
+/Users/nimitjain/Desktop/Projects/excel_rust/spreadsheet_client/target/wasm32-unknown-unknown/debug/deps/libwasm_bindgen_futures-4a894cc80ded59b0.rmeta: /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/lib.rs /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/queue.rs /Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/task/singlethread.rs
+
+/Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/lib.rs:
+/Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/queue.rs:
+/Users/nimitjain/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wasm-bindgen-futures-0.4.55/src/task/singlethread.rs:
