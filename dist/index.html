@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Yew App</title>
+    <link rel="modulepreload" href="/spreadsheet_client-8149dd269fa2eecc.js" crossorigin="anonymous" integrity="sha384-TxNJdtiQsrFvOTBzZOFEPlgDwnZTz/IdTVFaS9+Y3L5hhepdTqFFe2cjIxEfBwus"><link rel="preload" href="/spreadsheet_client-8149dd269fa2eecc_bg.wasm" crossorigin="anonymous" integrity="sha384-fXdsf5Cm56X1gGgTwj/4Q1cPvYFB/cR6n4F2a7kOqCB4UEJFdrve60AHaYBPQEQE" as="fetch" type="application/wasm"></head>
+  <body>
+    
+<script type="module">
+import init, * as bindings from '/spreadsheet_client-8149dd269fa2eecc.js';
+const wasm = await init({ module_or_path: '/spreadsheet_client-8149dd269fa2eecc_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script></body>
+</html>
