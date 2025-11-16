@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "spreadsheet_core",
+    "spreadsheet_terminal",
+    "spreadsheet_server",
+    "spreadsheet_client",
+]
+resolver = "3"

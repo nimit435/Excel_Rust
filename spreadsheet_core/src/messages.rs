@@ -9,6 +9,7 @@ pub struct ClientMsg {
 
 // A message from the server to all clients (browsers)
 #[derive(Serialize, Deserialize, Clone)]
-pub struct ServerMsg {
-    pub sheet: Sheet,
+pub enum ServerMsg {
+    SheetUpdate(Sheet),
+    Error(String),
 }

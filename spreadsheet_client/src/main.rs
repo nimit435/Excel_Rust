@@ -11,18 +11,18 @@ use futures::stream::SplitSink;
 // --- Define the state of our component ---
 struct App {
     sheet: Option<Sheet>,
-    // We are storing the "write" half of the split connection
     ws: Option<SplitSink<WebSocket, Message>>,
     user_input: String,
+    error_message: Option<String>, // <-- ADD THIS
 }
 
 // --- Define messages for component updates ---
 enum Msg {
     Connected(WebSocket),
-    ServerUpdate(ServerMsg),
+    FromServer(ServerMsg), // <-- RENAMED (from ServerUpdate)
     InputChanged(String),
     SubmitInput,
-    ConnectionFailed(GlooError), // <-- FIX (uses the GlooError we imported)
+    ConnectionFailed(GlooError),
     ConnectionLost,
     ConnectionRestored(SplitSink<WebSocket, Message>),
 }
@@ -50,6 +50,7 @@ impl Component for App {
             sheet: None,
             ws: None,
             user_input: String::new(),
+            error_message: None, // <-- ADD THIS
         }
     }
 
@@ -68,7 +69,7 @@ impl Component for App {
                             Ok(Message::Text(data)) => {
                                 // We got JSON from the server, parse it
                                 if let Ok(server_msg) = serde_json::from_str::<ServerMsg>(&data) {
-                                    link.send_message(Msg::ServerUpdate(server_msg));
+                                    link.send_message(Msg::FromServer(server_msg)); // <-- NEW
                                 }
                             }
                             _ => {}
@@ -81,9 +82,17 @@ impl Component for App {
             }
             
             // --- 3. Got a new sheet state from server ---
-            Msg::ServerUpdate(msg) => {
-                self.sheet = Some(msg.sheet);
-                true // Re-render the UI
+            Msg::FromServer(server_msg) => {
+                match server_msg {
+                    ServerMsg::SheetUpdate(sheet) => {
+                        self.sheet = Some(sheet);
+                        self.error_message = None; // Clear any previous error
+                    }
+                    ServerMsg::Error(e) => {
+                        self.error_message = Some(e);
+                    }
+                }
+                true // Re-render to show sheet update OR error
             }
 
             // --- 4. User is typing ---
@@ -94,6 +103,7 @@ impl Component for App {
             
             // --- 5. User submitted a command ---
             Msg::SubmitInput => {
+                self.error_message = None;
                 if let Some(mut ws) = self.ws.take() { // <-- 1. TAKE the writer
                     let msg = ClientMsg {
                         input: self.user_input.clone(),
@@ -139,6 +149,7 @@ impl Component for App {
             <div>
                 <h1>{ "Real-Time Rust Spreadsheet" }</h1>
                 { self.view_input(ctx) }
+                { self.view_error() } // <-- ADD THIS
                 { self.view_grid() }
             </div>
         }
@@ -226,6 +237,17 @@ impl App {
             }
         } else {
             html! { <p>{ "Connecting to server..." }</p> }
+        }
+    }
+    fn view_error(&self) -> Html {
+        if let Some(error) = &self.error_message {
+            html! {
+                <p style="color: red; font-weight: bold; margin: 10px 0;">
+                    { format!("Error: {}", error) }
+                </p>
+            }
+        } else {
+            html! {}
         }
     }
 }
