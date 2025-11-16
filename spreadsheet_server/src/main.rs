@@ -8,13 +8,21 @@ use axum::{
     Router,
 };
 use serde_json;
-use serde::{Deserialize, Serialize};
-use spreadsheet_core::{parse_input, Sheet, ClientMsg, ServerMsg}; // Use your library!
+use spreadsheet_core::{parse_input, Sheet, ClientMsg, ServerMsg, is_valid_cell}; // Use your library!
 use std::{net::SocketAddr, sync::Arc};
 use tokio::sync::{broadcast, Mutex};
-
+use clap::Parser;
 // Define the messages we'll send over the WebSocket
 
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    #[arg(default_value = "20")]
+    rows: u32,
+
+    #[arg(default_value = "20")]
+    cols: u32,
+}
 
 struct AppState {
     // The one and only "master" spreadsheet
@@ -26,7 +34,8 @@ struct AppState {
 #[tokio::main]
 async fn main() {
     // 1. Create the master sheet
-    let sheet = Sheet::create_sheet(20, 20);
+    let args = Args::parse();
+    let sheet = Sheet::create_sheet(args.rows, args.cols);
 
     // 2. Create the broadcast channel
     // The channel can hold 100 messages if receivers are slow
@@ -69,9 +78,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<AppState>) {
     // --- Send the initial state ---
     // Get a lock on the master sheet
     let sheet = state.sheet.lock().await;
-    let initial_msg = ServerMsg {
-        sheet: sheet.clone(), // Clone the current sheet
-    };
+    let initial_msg = ServerMsg::SheetUpdate(sheet.clone());
     // Send the current sheet to *just this user*
     if socket
         .send(Message::Text(serde_json::to_string(&initial_msg).unwrap()))
@@ -88,42 +95,64 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<AppState>) {
     loop {
         tokio::select! {
             // 1. Listen for messages from the user (e.g., "A1=50")
+            // 1. Listen for messages from the user (e.g., "A1=50")
+// 1. Listen for messages from the user (e.g., "A1=50")
             Some(Ok(msg)) = socket.recv() => {
                 if let Message::Text(text) = msg {
-                    // Try to parse the client's message
                     if let Ok(client_msg) = serde_json::from_str::<ClientMsg>(&text) {
-                        
+
                         // --- Apply Update ---
-                        // Get a lock on the master sheet
                         let mut sheet = state.sheet.lock().await;
-                        
-                        // Run your existing logic!
-                        // This handles "s", "d", "A1=50", etc.
-                        match parse_input(&client_msg.input, &mut sheet) {
-                            Ok(_) => {
-                                // Input was valid and sheet was updated
-                            },
-                            Err(e) => {
-                                // The input was an error (e.g., cycle)
-                                // We could send an error message back, but for now
-                                // we'll just log it.
-                                println!("Input error: {}", e);
-                                // We still broadcast, as things like
-                                // "scroll_to" might fail but still be valid.
+                        let input_lowercase = client_msg.input.to_lowercase();
+
+                        // We create a Result to hold our error message
+                        let mut op_result: Result<(), String> = Ok(());
+
+                        // --- Logic from previous step ---
+                        if input_lowercase.starts_with("scroll_to") {
+                            let parts: Vec<&str> = client_msg.input.split_whitespace().collect();
+                            if parts.len() == 2 {
+                                match is_valid_cell(parts[1], &sheet) {
+                                    Ok(_) => sheet.scroll_to(parts[1]),
+                                    Err(e) => op_result = Err(e), // Capture error
+                                }
+                            } else {
+                                op_result = Err("Invalid scroll_to format.".to_string()); // Capture error
+                            }
+                        } else {
+                            match input_lowercase.as_str() {
+                                "w" => sheet.scroll_up(),
+                                "a" => sheet.scroll_left(),
+                                "s" => sheet.scroll_down(),
+                                "d" => sheet.scroll_right(),
+                                _ => {
+                                    match parse_input(&client_msg.input, &mut sheet) {
+                                        Ok(_) => {}, // Good!
+                                        Err(e) => op_result = Err(e), // Capture error
+                                    }
+                                }
                             }
                         }
+                        // --- End Logic ---
 
-                        // --- Broadcast Update ---
-                        let server_msg = ServerMsg {
-                            sheet: sheet.clone(), // Clone the *new* sheet state
-                        };
-                        
-                        // Send the new sheet to the broadcast channel
-                        // This will notify *all* connected users
-                        let _ = state.tx.send(server_msg);
 
-                        // Release the lock
-                        drop(sheet);
+                        // --- Send Response ---
+                        match op_result {
+                            Ok(_) => {
+                                // SUCCESS: Broadcast the sheet update to everyone
+                                let server_msg = ServerMsg::SheetUpdate(sheet.clone());
+                                let _ = state.tx.send(server_msg);
+                            }
+                            Err(e) => {
+                                // ERROR: Send error message *only* to this user
+                                let err_msg = ServerMsg::Error(e);
+                                let json = serde_json::to_string(&err_msg).unwrap();
+                                if socket.send(Message::Text(json)).await.is_err() {
+                                    break; // User disconnected
+                                }
+                            }
+                        }
+                        drop(sheet); // Release the lock
                     }
                 }
             },
