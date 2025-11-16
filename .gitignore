@@ -6,4 +6,9 @@
 /spreadsheet_server/target*
 /spreadsheet_client/target*
 /spreadsheet_core/target*
-/spreadsheet_client/dist
+/.shuttle
+/spreadsheet_core/dist*
+/spreadsheet_client/dist*
+/spreadsheet_server/dist*
+
+

@@ -5,7 +5,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use futures::{StreamExt, SinkExt};
 use gloo_net::Error as GlooError;
-use web_sys::{HtmlInputElement, InputEvent, SubmitEvent, FocusEvent, KeyboardEvent}; // --- CHANGED --- (Added FocusEvent)
+use web_sys::{HtmlInputElement, InputEvent, FocusEvent, KeyboardEvent}; // --- CHANGED --- (Added FocusEvent)
 use futures::stream::SplitSink;
 
 // --- Define the state of our component ---
