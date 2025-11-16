@@ -3,7 +3,7 @@
 /.cph
 .DS_Store
 *.zip
-/spreadsheet_server/target
-/spreadsheet_client/target
-/spreadsheet_core/target
+/spreadsheet_server/target*
+/spreadsheet_client/target*
+/spreadsheet_core/target*
 /spreadsheet_client/dist
