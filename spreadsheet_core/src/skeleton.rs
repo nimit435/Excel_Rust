@@ -1,6 +1,7 @@
 use std::cmp::min;
 use crate::hash::{self, get_column};
-
+use serde::{Serialize, Deserialize};
+#[derive(Serialize, Deserialize, Clone)]
 pub enum Celltype{
     Constant,
     Arithmetic(char),
@@ -11,6 +12,7 @@ pub enum Celltype{
     Stdev,
     Sleep,
 }
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Cell{
     pub kind: Celltype,
     pub val: i32,
@@ -21,6 +23,7 @@ pub struct Cell{
     pub cell1: Option<i32>,
     pub cell2: Option<i32>
 }
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Sheet{
     pub rows: u32,
     pub cols: u32,

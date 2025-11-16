@@ -1,4 +1,4 @@
-use spreadsheet::{display::display_sheet, parsing::{parse_input,is_valid_cell}, skeleton::Sheet};
+use spreadsheet_core::{Sheet, parse_input, is_valid_cell, get_sheet_as_string};
 use std::io;
 use std::time::Instant;
 use std::io::Write;
@@ -23,7 +23,8 @@ fn main() {
 
     let clock_st = Instant::now();
     let mut sheet:Sheet = Sheet::create_sheet(rows, cols);
-    display_sheet(&sheet);
+    let grid_string = get_sheet_as_string(&sheet);
+    println!("{}", grid_string);
     let el_t = format!("{:.1}", clock_st.elapsed().as_secs_f64());
     print!("[{el_t}] (ok) > ");
     io::stdout().flush().unwrap();
@@ -73,7 +74,10 @@ fn main() {
             }
         }
         let timed = format!("{:.1}", strt.elapsed().as_secs_f64());
-        display_sheet(&sheet);
+        if sheet.is_display{
+            let grid_string = get_sheet_as_string(&sheet);
+            println!("{}", grid_string);
+        }
         
         match res{
             Ok(_)=> {print!("[{timed}] (ok) > ");},
