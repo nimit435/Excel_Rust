@@ -1,7 +1,12 @@
-[package]
-name = "spreadsheet"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+resolver = "3" # Use the modern resolver
 
-[dependencies]
-spreadsheet_core = { path = "spreadsheet_core" }
+members = [
+    "spreadsheet_client",
+    "spreadsheet_core",
+    "spreadsheet_server",
+]
+
+# This tells Shuttle which package to deploy
+[workspace.metadata.shuttle]
+name = "spreadsheet_server"

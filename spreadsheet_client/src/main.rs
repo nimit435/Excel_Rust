@@ -1,12 +1,13 @@
 use gloo_net::websocket::{futures::WebSocket, Message};
 use serde_json;
-use spreadsheet_core::{ClientMsg, ServerMsg, Sheet}; // Our shared types!
+use spreadsheet_core::{ClientMsg, ServerMsg, Sheet, col_mapping}; // Our shared types!
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use futures::{StreamExt, SinkExt};
 use gloo_net::Error as GlooError;
 use web_sys::{HtmlInputElement, InputEvent, FocusEvent, KeyboardEvent}; // --- CHANGED --- (Added FocusEvent)
 use futures::stream::SplitSink;
+
 
 // --- Define the state of our component ---
 struct App {
@@ -302,7 +303,7 @@ impl App {
                             <th style={cell_style(true, false)}></th>
                             {
                                 (colt..std::cmp::min(colt + 10, numcols)).map(|j| {
-                                    let col_name = (b'A' + j as u8) as char;
+                                    let col_name = col_mapping(j+1);
                                     html!{ <th style={cell_style(true, false)}>{ col_name }</th> }
                                 }).collect::<Html>()
                             }

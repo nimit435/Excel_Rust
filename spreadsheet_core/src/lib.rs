@@ -7,4 +7,5 @@ pub mod messages;
 pub use skeleton::Sheet;
 pub use parsing::{parse_input, is_valid_cell};
 pub use display::get_sheet_as_string;
+pub use hash::col_mapping;
 pub use messages::{ClientMsg, ServerMsg};
