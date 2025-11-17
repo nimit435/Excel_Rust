@@ -221,7 +221,7 @@ impl Component for App {
 
         html! {
             <div onclick={on_bg_click} style="min-height: 100vh;">
-                <h1>{ "Real-Time Rust Spreadsheet" }</h1>
+                <center><h1>{ "Real-Time Rust Spreadsheet" }</h1></center>
                 { self.view_input(ctx) }
                 { self.view_error() }
                 { self.view_grid(ctx) }
@@ -278,7 +278,7 @@ impl App {
                     value={self.bar_input.clone()}
                     {oninput}
                     {onkeydown} // <-- ATTACH onkeydown
-                    style="width: 300px; padding: 5px;"
+                    style="width: 1325px; padding: 5px;"
                 />
                 // --- Button now uses onclick ---
                 <button {onclick} style="padding: 5px;">{ "Send Command" }</button>
@@ -302,7 +302,7 @@ impl App {
                         <tr>
                             <th style={cell_style(true, false)}></th>
                             {
-                                (colt..std::cmp::min(colt + 10, numcols)).map(|j| {
+                                (colt..std::cmp::min(colt + 20, numcols)).map(|j| {
                                     let col_name = col_mapping(j+1);
                                     html!{ <th style={cell_style(true, false)}>{ col_name }</th> }
                                 }).collect::<Html>()
@@ -311,12 +311,12 @@ impl App {
                     </thead>
                     <tbody>
                     {
-                        (rowt..std::cmp::min(rowt + 10, numrows)).map(|i| {
+                        (rowt..std::cmp::min(rowt + 30, numrows)).map(|i| {
                             html! {
                                 <tr>
                                     <td style={cell_style(true, false)}>{ i + 1 }</td>
                                     {
-                                        (colt..std::cmp::min(colt + 10, numcols)).map(|j| {
+                                        (colt..std::cmp::min(colt + 20, numcols)).map(|j| {
                                             let col_char = (b'A' + j as u8) as char;
                                             let cell_id = format!("{}{}", col_char, i + 1);
                                             
@@ -410,16 +410,16 @@ fn cell_style(is_header: bool, is_selected: bool) -> String {
     let mut style = String::from("padding: 4px; min-width: 60px; text-align: center;");
     
     if is_header {
-        style.push_str("background-color: #f4f4f4; font-weight: bold; border: 1px solid #ccc;");
+        style.push_str("background-color: #408f0bff; font-weight: bold; border: 1px solid #ccc;");
     } else {
-        style.push_str("background-color: #fff;");
+        style.push_str("background-color: #ffffffff;");
         if is_selected {
             // --- CHANGED ---
             // Style for the <td> *containing* the input
-            style.push_str("border: 2px solid #2196F3; padding: 0;"); 
+            style.push_str("border: 2px solid #266191ff; padding: 0;"); 
         } else {
             // Style for a normal, clickable cell
-            style.push_str("border: 1px solid #ccc; cursor: pointer;");
+            style.push_str("border: 1px solid #040101ff; cursor: pointer;");
         }
     }
     style
