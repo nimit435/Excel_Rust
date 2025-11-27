@@ -404,8 +404,6 @@ impl App {
     }
 }
 
-// Helper for cell styling
-// `is_selected` now means "is being edited"
 fn cell_style(is_header: bool, is_selected: bool) -> String {
     let mut style = String::from("padding: 4px; min-width: 60px; text-align: center;");
     
