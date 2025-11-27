@@ -1,11 +1,11 @@
 use gloo_net::websocket::{futures::WebSocket, Message};
 use serde_json;
-use spreadsheet_core::{ClientMsg, ServerMsg, Sheet, col_mapping}; // Our shared types!
+use spreadsheet_core::{ClientMsg, ServerMsg, Sheet, col_mapping}; 
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use futures::{StreamExt, SinkExt};
 use gloo_net::Error as GlooError;
-use web_sys::{HtmlInputElement, InputEvent, FocusEvent, KeyboardEvent}; // --- CHANGED --- (Added FocusEvent)
+use web_sys::{HtmlInputElement, InputEvent, FocusEvent, KeyboardEvent}; 
 use futures::stream::SplitSink;
 
 
@@ -13,8 +13,8 @@ use futures::stream::SplitSink;
 struct App {
     sheet: Option<Sheet>,
     ws: Option<SplitSink<WebSocket, Message>>,
-    bar_input: String,      // --- RENAMED --- (Was user_input, now for top bar)
-    edit_input: String,     // --- NEW --- (For in-cell editing)
+    bar_input: String,      
+    edit_input: String,     
     error_message: Option<String>,
     editing_cell: Option<String>, // --- RENAMED --- (Was selected_cell)
     input_ref: NodeRef,     // --- NEW --- (To auto-focus the in-cell input)
