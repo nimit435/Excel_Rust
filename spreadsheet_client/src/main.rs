@@ -317,8 +317,8 @@ impl App {
                                     <td style={cell_style(true, false)}>{ i + 1 }</td>
                                     {
                                         (colt..std::cmp::min(colt + 20, numcols)).map(|j| {
-                                            let col_char = (b'A' + j as u8) as char;
-                                            let cell_id = format!("{}{}", col_char, i + 1);
+                                            let col_name = col_mapping(j+1);
+                                            let cell_id = format!("{}{}", col_name, i + 1);
                                             
                                             // --- CHANGED ---
                                             // Check if this cell is being edited
@@ -410,13 +410,13 @@ fn cell_style(is_header: bool, is_selected: bool) -> String {
     let mut style = String::from("padding: 4px; min-width: 60px; text-align: center;");
     
     if is_header {
-        style.push_str("background-color: #408f0bff; font-weight: bold; border: 1px solid #ccc;");
+        style.push_str("background-color: #898988a5; font-weight: bold; border: 1px solid #ccccccff;");
     } else {
-        style.push_str("background-color: #ffffffff;");
+        style.push_str("background-color: #bbe4bbff;");
         if is_selected {
             // --- CHANGED ---
             // Style for the <td> *containing* the input
-            style.push_str("border: 2px solid #266191ff; padding: 0;"); 
+            style.push_str("border: 2px solid #008cffff; padding: 0;"); 
         } else {
             // Style for a normal, clickable cell
             style.push_str("border: 1px solid #040101ff; cursor: pointer;");
